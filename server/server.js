@@ -1361,9 +1361,13 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, () => {
-  console.log(`=======================================================`);
-  console.log(`🖨️  PRINT PRESS MASTER SERVER RUNNING AT:`);
-  console.log(`👉 http://localhost:${PORT}`);
-  console.log(`=======================================================`);
-});
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  server.listen(PORT, () => {
+    console.log(`=======================================================`);
+    console.log(`🖨️  PRINT PRESS MASTER SERVER RUNNING AT:`);
+    console.log(`👉 http://localhost:${PORT}`);
+    console.log(`=======================================================`);
+  });
+}
+
+export default server;

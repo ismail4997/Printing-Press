@@ -1114,7 +1114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const prev = prevMap[job.current_stage];
     if (prev) {
-      return `<button class="btn btn-secondary btn-sm" onclick="moveJobStage(${job.id}, '${prev}')" title="Send Back">⏪</button>`;
+      return `<button class="btn btn-secondary btn-sm" onclick="moveJobStage(${job.id}, '${prev}')" title="Undo Stage" style="padding: 0.25rem 0.5rem; display: flex; align-items: center; justify-content: center; background-color: transparent; border: 1px solid var(--border-color);">&larr; Undo</button>`;
     }
     return '';
   }

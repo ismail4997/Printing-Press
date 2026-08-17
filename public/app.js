@@ -1035,7 +1035,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (product) rate = product.rate_per_box;
 
       const revenue = job.delivered_qty * rate;
-      const totalCost = (job.material_cost || 0) + (job.print_cost || 0) + (job.lamination_cost || 0) + (job.diecut_cost || 0) + (job.pasting_cost || 0);
+
+      const stages = ['queue', 'printing', 'lamination', 'die_cutting', 'outside_pasting', 'delivered'];
+      const stageIdx = stages.indexOf(job.current_stage);
+      const laminationCost = stageIdx >= stages.indexOf('lamination') ? (job.lamination_cost || 0) : 0;
+      const diecutCost = stageIdx >= stages.indexOf('die_cutting') ? (job.diecut_cost || 0) : 0;
+      const pastingCost = stageIdx >= stages.indexOf('outside_pasting') ? (job.pasting_cost || 0) : 0;
+
+      const totalCost = (job.material_cost || 0) + (job.print_cost || 0) + laminationCost + diecutCost + pastingCost;
       const profit = revenue - totalCost;
 
       const isCompleted = job.status === 'completed';
@@ -1047,9 +1054,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <td style="color:var(--emerald)">Rs. ${revenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
           <td>Rs. ${(job.material_cost || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
           <td>Rs. ${(job.print_cost || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-          <td>Rs. ${(job.lamination_cost || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-          <td>Rs. ${(job.diecut_cost || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-          <td>Rs. ${(job.pasting_cost || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td>Rs. ${laminationCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td>Rs. ${diecutCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td>Rs. ${pastingCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
           <td style="font-weight:bold; color:var(--red)">Rs. ${totalCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
           <td style="font-weight:bold; color:${profit >= 0 ? 'var(--emerald)' : 'var(--red)'}">Rs. ${profit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
         </tr>

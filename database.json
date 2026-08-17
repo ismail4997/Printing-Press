@@ -5,12 +5,31 @@
       "name": "supper paper mart",
       "category": "paper_supplier",
       "phone": "03004203903",
-      "balance": 1106950,
+      "balance": 267475,
       "initial_balance": 1550000,
       "created_at": "2026-08-17T08:38:12.850Z"
     }
   ],
-  "clients": [],
+  "clients": [
+    {
+      "id": 1,
+      "name": "Robinson pharma",
+      "company": "Healthcare",
+      "phone": "03024598791",
+      "balance": 0,
+      "initial_balance": 0,
+      "created_at": "2026-08-17T11:48:38.347Z"
+    },
+    {
+      "id": 2,
+      "name": "McOlson",
+      "company": "Healthcare",
+      "phone": "03024598791",
+      "balance": 0,
+      "initial_balance": 0,
+      "created_at": "2026-08-17T11:50:00.954Z"
+    }
+  ],
   "inventory": [
     {
       "id": 1,
@@ -18,8 +37,8 @@
       "gsm": 270,
       "size_w": 25,
       "size_h": 30,
-      "pkt_qty": 65,
-      "sheet_qty": 6500,
+      "pkt_qty": 14,
+      "sheet_qty": 1400,
       "min_alert_pkts": 10,
       "vendor_id": 1,
       "rate_per_kg": 318,
@@ -31,80 +50,38 @@
       "gsm": 275,
       "size_w": 44,
       "size_h": 23,
-      "pkt_qty": 45,
-      "sheet_qty": 4500,
+      "pkt_qty": 0,
+      "sheet_qty": 0,
       "min_alert_pkts": 10,
       "vendor_id": 1,
       "rate_per_kg": 318,
       "rate_per_pkt": 5710
+    },
+    {
+      "id": 3,
+      "paper_type": "Bleach Card",
+      "gsm": 270,
+      "size_w": 25,
+      "size_h": 15,
+      "pkt_qty": 0,
+      "sheet_qty": 0,
+      "min_alert_pkts": 10,
+      "vendor_id": 1,
+      "rate_per_pkt": 2078,
+      "rate_per_kg": 318
     }
   ],
   "vendor_transactions": [
     {
       "id": 1,
       "vendor_id": 1,
-      "date": "2026-08-17",
-      "type": "OPENING BALANCE",
-      "description": "Opening Balance",
-      "debit": 0,
-      "credit": 1550000,
-      "balance_after": 1550000
-    },
-    {
-      "id": 2,
-      "vendor_id": 1,
       "bill_id": 1,
       "date": "2026-08-17",
       "type": "PURCHASE",
-      "description": "Received 65 Pkts Bleach Card 270gsm (25x30) @ Rs. 318/KG (13.06 KG/pkt) [PO-1001]",
+      "description": "Received 65 Pkts Bleach Card 270gsm (25x30) @ Rs. 315/KG (13.06 KG/pkt) [PO-1001]",
       "debit": 0,
-      "credit": 270075,
-      "balance_after": 1820075
-    },
-    {
-      "id": 3,
-      "vendor_id": 1,
-      "bill_id": 2,
-      "date": "2026-08-17",
-      "type": "PURCHASE",
-      "description": "Received 45 Pkts Bleach Card 275gsm (44x23) @ Rs. 318/KG (17.95 KG/pkt) [PO-1001]",
-      "debit": 0,
-      "credit": 256950,
-      "balance_after": 2077025
-    },
-    {
-      "id": 4,
-      "vendor_id": 1,
-      "date": "2026-08-17",
-      "type": "PAYMENT",
-      "bill_id": null,
-      "description": "Payment Paid (Cash)",
-      "debit": 150000,
-      "credit": 0,
-      "balance_after": 1927025
-    },
-    {
-      "id": 5,
-      "vendor_id": 1,
-      "bill_id": 1,
-      "date": "2026-08-25",
-      "type": "PAYMENT",
-      "description": "Cheque Payment against VB-1001 (Cheque #154878)",
-      "debit": 270075,
-      "credit": 0,
-      "payment_method": "Cheque",
-      "balance_after": 1656950
-    },
-    {
-      "id": 6,
-      "vendor_id": 1,
-      "date": "2026-08-17",
-      "type": "PAYMENT",
-      "bill_id": null,
-      "description": "Payment Paid (Cash)",
-      "debit": 550000,
-      "credit": 0,
-      "balance_after": 1106950
+      "credit": 267475,
+      "balance_after": 267475
     }
   ],
   "vendor_bills": [
@@ -114,35 +91,17 @@
       "bill_no": "VB-1001",
       "order_no": "PO-1001",
       "date": "2026-08-17",
-      "description": "65 Pkts Bleach Card 270gsm (25x30) @ Rs. 318/KG",
+      "description": "65 Pkts Bleach Card 270gsm (25x30) @ Rs. 315/KG",
       "paper_type": "Bleach Card",
       "gsm": 270,
-      "total_amount": 270075,
-      "paid_amount": 270075,
-      "remaining_amount": 0,
-      "payment_type": "credit",
-      "credit_days": 30,
-      "due_date": "2026-09-16",
-      "status": "paid",
-      "created_at": "2026-08-17T08:38:53.729Z"
-    },
-    {
-      "id": 2,
-      "vendor_id": 1,
-      "bill_no": "VB-1002",
-      "order_no": "PO-1001",
-      "date": "2026-08-17",
-      "description": "45 Pkts Bleach Card 275gsm (44x23) @ Rs. 318/KG",
-      "paper_type": "Bleach Card",
-      "gsm": 275,
-      "total_amount": 256950,
+      "total_amount": 267475,
       "paid_amount": 0,
-      "remaining_amount": 256950,
+      "remaining_amount": 267475,
       "payment_type": "credit",
       "credit_days": 30,
       "due_date": "2026-09-16",
       "status": "unpaid",
-      "created_at": "2026-08-17T08:38:55.809Z"
+      "created_at": "2026-08-17T11:46:16.601Z"
     }
   ],
   "purchase_orders": [
@@ -156,37 +115,104 @@
       "size_w": 25,
       "size_h": 30,
       "ordered_pkts": 65,
-      "rate_per_kg": 318,
-      "estimated_total": 270044,
+      "rate_per_kg": 315,
+      "estimated_total": 267496,
       "status": "received",
       "received_pkts": 65,
       "received_date": "2026-08-17",
       "bill_id": 1,
       "notes": "",
-      "created_at": "2026-08-17T08:38:51.356Z"
-    },
-    {
-      "id": 2,
-      "order_no": "PO-1001",
-      "vendor_id": 1,
-      "date": "2026-08-17",
-      "paper_type": "Bleach Card",
-      "gsm": 275,
-      "size_w": 44,
-      "size_h": 23,
-      "ordered_pkts": 45,
-      "rate_per_kg": 318,
-      "estimated_total": 256934,
-      "status": "received",
-      "received_pkts": 45,
-      "received_date": "2026-08-17",
-      "bill_id": 2,
-      "notes": "",
-      "created_at": "2026-08-17T08:38:51.356Z"
+      "created_at": "2026-08-17T11:45:47.601Z"
     }
   ],
   "client_transactions": [],
-  "jobs": [],
+  "jobs": [
+    {
+      "id": 1,
+      "job_no": "JOB-1001",
+      "client_id": 2,
+      "job_title": "Neoprad 50mg",
+      "paper_type": "Bleach Card",
+      "gsm": 270,
+      "order_qty": 60000,
+      "pkts_required": 60,
+      "colors": 5,
+      "extra_colors": [
+        {
+          "label": "Special Color 5 varish ",
+          "rate": 1200
+        }
+      ],
+      "print_cost": 24000,
+      "material_cost": 124635,
+      "lamination_cost": 15312.5,
+      "die_cut_cost": 0,
+      "current_stage": "lamination",
+      "solna_machine": 1,
+      "produced_qty": 0,
+      "delivered_qty": 0,
+      "status": "active",
+      "created_at": "2026-08-17T11:53:02.618Z",
+      "lamination_type": "uv",
+      "lamination_rate": 1.2,
+      "lamination_sheet_w": 12.5,
+      "lamination_sheet_h": 24.5,
+      "total_amount": 15312.5
+    },
+    {
+      "id": 2,
+      "job_no": "JOB-1002",
+      "client_id": 1,
+      "job_title": "Orex plus syp 120ml (1)",
+      "paper_type": "Bleach Card",
+      "gsm": 270,
+      "order_qty": 25200,
+      "pkts_required": 42,
+      "colors": 5,
+      "extra_colors": [
+        {
+          "label": "Special Color 5",
+          "rate": 800
+        }
+      ],
+      "print_cost": 15120,
+      "material_cost": 87244,
+      "lamination_cost": 0,
+      "die_cut_cost": 0,
+      "current_stage": "lamination",
+      "solna_machine": 1,
+      "produced_qty": 0,
+      "delivered_qty": 0,
+      "status": "active",
+      "created_at": "2026-08-17T11:55:27.409Z",
+      "lamination_type": "none",
+      "lamination_rate": 0,
+      "lamination_sheet_w": 18,
+      "lamination_sheet_h": 23,
+      "total_amount": 0
+    }
+  ],
   "machines": [],
-  "client_products": []
+  "client_products": [
+    {
+      "id": 1,
+      "client_id": 1,
+      "name": "Orex plus syp 120ml (1)",
+      "paper_size": "25x15",
+      "ups": 6,
+      "colors": 5,
+      "rate_per_box": 5.9,
+      "description": "BOX WITH UV"
+    },
+    {
+      "id": 2,
+      "client_id": 2,
+      "name": "Neoprad 50mg",
+      "paper_size": "25x15",
+      "ups": 10,
+      "colors": 5,
+      "rate_per_box": 4.26,
+      "description": ""
+    }
+  ]
 }

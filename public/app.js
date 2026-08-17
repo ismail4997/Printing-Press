@@ -1093,6 +1093,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ` : ''}
 
             <div class="job-card-actions">
+              ${getPrevStageBtn(job)}
               ${getNextStageBtn(job)}
               ${stage === 'outside_pasting' ? `<button class="btn btn-secondary btn-sm" onclick="openPastingModal(${job.id})">Pasting Dispatch</button>` : ''}
               ${stage !== 'delivered' ? `<button class="btn btn-emerald btn-sm" onclick="quickDeliver(${job.id})">Deliver</button>` : ''}
@@ -1101,6 +1102,21 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
       }
     });
+  }
+
+  function getPrevStageBtn(job) {
+    const prevMap = {
+      'printing': 'queue',
+      'lamination': 'printing',
+      'die_cutting': 'lamination',
+      'outside_pasting': 'die_cutting',
+      'delivered': 'outside_pasting'
+    };
+    const prev = prevMap[job.current_stage];
+    if (prev) {
+      return `<button class="btn btn-secondary btn-sm" onclick="moveJobStage(${job.id}, '${prev}')" title="Send Back">⏪</button>`;
+    }
+    return '';
   }
 
   function getNextStageBtn(job) {

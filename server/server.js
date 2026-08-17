@@ -1223,8 +1223,9 @@ const server = http.createServer(async (req, res) => {
       job.lamination_sheet_h = parseFloat(body.lamination_sheet_h) || 0;
       
       const lamCost = parseFloat(body.lamination_cost) || 0;
+      const oldLamCost = job.lamination_cost || 0;
       job.lamination_cost = lamCost;
-      job.total_amount = (job.total_amount || 0) + lamCost;
+      job.total_amount = (job.total_amount || 0) - oldLamCost + lamCost;
       job.current_stage = 'lamination';
 
       // Bill to client ledger logic removed for box-based billing
@@ -1243,8 +1244,9 @@ const server = http.createServer(async (req, res) => {
       job.diecut_rate = parseFloat(body.diecut_rate) || 0;
       
       const dieCost = parseFloat(body.diecut_cost) || 0;
+      const oldDieCost = job.diecut_cost || 0;
       job.diecut_cost = dieCost;
-      job.total_amount = (job.total_amount || 0) + dieCost;
+      job.total_amount = (job.total_amount || 0) - oldDieCost + dieCost;
       job.current_stage = 'die_cutting';
 
       // Bill to client ledger logic removed for box-based billing

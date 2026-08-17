@@ -1196,6 +1196,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const job = state.jobs.find(j => j.id === jobId);
     if (!job) return;
     document.getElementById('send-pasting-job-id').value = job.id;
+    document.getElementById('send-pasting-job-info').innerText = `${job.job_no} - ${job.job_title} (${job.order_qty} pcs)`;
     document.getElementById('send-pasting-rate').value = job.pasting_rate_per_box || '';
     openModal('modal-send-pasting');
   };

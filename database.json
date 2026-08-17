@@ -16,7 +16,7 @@
       "name": "Robinson pharma",
       "company": "Healthcare",
       "phone": "03024598791",
-      "balance": 0,
+      "balance": 292640,
       "initial_balance": 0,
       "created_at": "2026-08-17T11:48:38.347Z"
     },
@@ -25,7 +25,7 @@
       "name": "McOlson",
       "company": "Healthcare",
       "phone": "03024598791",
-      "balance": 0,
+      "balance": 247719,
       "initial_balance": 0,
       "created_at": "2026-08-17T11:50:00.954Z"
     }
@@ -125,7 +125,41 @@
       "created_at": "2026-08-17T11:45:47.601Z"
     }
   ],
-  "client_transactions": [],
+  "client_transactions": [
+    {
+      "id": 1,
+      "client_id": 2,
+      "job_no": "JOB-1001",
+      "date": "2026-08-17",
+      "type": "INVOICE",
+      "description": "Delivered 58150 boxes of Neoprad 50mg @ Rs. 4.26/box",
+      "debit": 247719,
+      "credit": 0,
+      "balance_after": 247719
+    },
+    {
+      "id": 2,
+      "client_id": 1,
+      "job_no": "JOB-1002",
+      "date": "2026-08-17",
+      "type": "INVOICE",
+      "description": "Delivered 24800 boxes of Orex plus syp 120ml (1) @ Rs. 5.90/box",
+      "debit": 146320,
+      "credit": 0,
+      "balance_after": 146320
+    },
+    {
+      "id": 3,
+      "client_id": 1,
+      "job_no": "JOB-1002",
+      "date": "2026-08-17",
+      "type": "INVOICE",
+      "description": "Delivered 24800 boxes of Orex plus syp 120ml (1) @ Rs. 5.90/box",
+      "debit": 146320,
+      "credit": 0,
+      "balance_after": 292640
+    }
+  ],
   "jobs": [
     {
       "id": 1,
@@ -147,17 +181,23 @@
       "material_cost": 124635,
       "lamination_cost": 0,
       "die_cut_cost": 0,
-      "current_stage": "printing",
+      "current_stage": "die_cutting",
       "solna_machine": 1,
       "produced_qty": 0,
-      "delivered_qty": 0,
-      "status": "active",
+      "delivered_qty": 58150,
+      "status": "completed",
       "created_at": "2026-08-17T11:53:02.618Z",
       "lamination_type": "none",
       "lamination_rate": 0,
       "lamination_sheet_w": 18,
       "lamination_sheet_h": 23,
-      "total_amount": 15312.5
+      "total_amount": 27912.5,
+      "diecut_rate": 0.7,
+      "diecut_cost": 4200,
+      "pasting_rate_per_box": 0.2,
+      "pasting_sent_qty": 60000,
+      "pasting_received_qty": 58150,
+      "pasting_cost": 11630
     },
     {
       "id": 2,
@@ -177,19 +217,25 @@
       ],
       "print_cost": 15120,
       "material_cost": 87244,
-      "lamination_cost": 0,
+      "lamination_cost": 10718.75,
       "die_cut_cost": 0,
-      "current_stage": "printing",
+      "current_stage": "outside_pasting",
       "solna_machine": 1,
       "produced_qty": 0,
-      "delivered_qty": 0,
-      "status": "active",
+      "delivered_qty": 24800,
+      "status": "completed",
       "created_at": "2026-08-17T11:55:27.409Z",
-      "lamination_type": "none",
-      "lamination_rate": 0,
+      "lamination_type": "uv",
+      "lamination_rate": 1.2,
       "lamination_sheet_w": 24.5,
       "lamination_sheet_h": 12.5,
-      "total_amount": 10718.75
+      "total_amount": 48755,
+      "diecut_rate": 0.7,
+      "diecut_cost": 2940,
+      "pasting_rate_per_box": 0.5,
+      "pasting_sent_qty": 25200,
+      "pasting_received_qty": 24800,
+      "pasting_cost": 24800
     }
   ],
   "machines": [],

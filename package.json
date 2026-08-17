@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "echo 'No build required for vanilla JS'",
     "start": "node server/server.js",
     "dev": "node server/server.js",
     "server": "node server/server.js"

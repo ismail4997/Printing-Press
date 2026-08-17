@@ -1309,8 +1309,8 @@ const server = http.createServer(async (req, res) => {
       
       if (job.pasting_rate_per_box) {
          const pastingCost = deliverQty * job.pasting_rate_per_box;
-         job.pasting_cost = (job.pasting_cost || 0) + pastingCost;
-         job.pasting_received_qty = (job.pasting_received_qty || 0) + deliverQty;
+         job.pasting_cost = pastingCost;
+         job.pasting_received_qty = deliverQty;
       }
       
       // Update delivered qty to the entered amount
@@ -1329,7 +1329,7 @@ const server = http.createServer(async (req, res) => {
         ratePerBox = product.rate_per_box;
       }
 
-      if (ratePerBox > 0 && deliverQty > 0) {
+      if (ratePerBox > 0 && deliverQty > 0 && !job.is_billed) {
         const invoiceAmount = deliverQty * ratePerBox;
         const client = db.data.clients.find(c => c.id === job.client_id);
         if (client) {
@@ -1345,6 +1345,7 @@ const server = http.createServer(async (req, res) => {
             credit: 0,
             balance_after: client.balance
           });
+          job.is_billed = true;
         }
       }
 

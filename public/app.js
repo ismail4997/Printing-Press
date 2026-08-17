@@ -1206,6 +1206,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!job) return;
 
     document.getElementById('pasting-job-id').value = job.id;
+    document.getElementById('pasting-dispatch-job-info').innerText = `${job.job_no} - ${job.job_title} (${job.order_qty} pcs)`;
     document.getElementById('pasting-sent-qty').value = job.pasting_sent_qty || job.order_qty;
     document.getElementById('pasting-received-qty').value = job.pasting_received_qty || 0;
     document.getElementById('pasting-rate-1000').value = job.pasting_rate_per_1000 || 1200;

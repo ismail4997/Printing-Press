@@ -1081,9 +1081,21 @@ document.addEventListener('DOMContentLoaded', () => {
               Stock: ${job.pkts_required} Pkts (${job.paper_type} ${job.gsm}g)<br>
               Colors: ${job.colors || 1} Colors ${job.extra_colors && job.extra_colors.length ? `<span style="font-size: 0.8rem; color: var(--amber);"><br>&rarr; Includes: ${job.extra_colors.map(c => c.label).join(', ')}</span>` : ''}<br>
               Print Cost: <strong style="color: var(--emerald);">Rs. ${job.print_cost ? job.print_cost.toLocaleString() : 0}</strong>
-              ${job.lamination_type && job.lamination_type !== 'none' ? `<br>Lamination: <strong>${job.lamination_type.toUpperCase()}</strong> (Cost: Rs. ${job.lamination_cost ? job.lamination_cost.toLocaleString() : 0})` : ''}
-              ${job.diecut_cost ? `<br>Die Cut: (Cost: Rs. ${job.diecut_cost.toLocaleString()})` : ''}
-              ${job.pasting_cost ? `<br>Pasting: (Cost: Rs. ${job.pasting_cost.toLocaleString()})` : ''}
+              ${(() => {
+                const stages = ['queue', 'printing', 'lamination', 'die_cutting', 'outside_pasting', 'delivered'];
+                const stageIdx = stages.indexOf(job.current_stage);
+                let html = '';
+                if (stageIdx >= stages.indexOf('lamination') && job.lamination_type && job.lamination_type !== 'none') {
+                  html += `<br>Lamination: <strong>${job.lamination_type.toUpperCase()}</strong> (Cost: Rs. ${job.lamination_cost ? job.lamination_cost.toLocaleString() : 0})`;
+                }
+                if (stageIdx >= stages.indexOf('die_cutting') && job.diecut_cost) {
+                  html += `<br>Die Cut: (Cost: Rs. ${job.diecut_cost.toLocaleString()})`;
+                }
+                if (stageIdx >= stages.indexOf('outside_pasting') && job.pasting_cost) {
+                  html += `<br>Pasting: (Cost: Rs. ${job.pasting_cost.toLocaleString()})`;
+                }
+                return html;
+              })()}
             </div>
 
             ${stage === 'outside_pasting' ? `

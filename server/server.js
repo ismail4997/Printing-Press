@@ -1197,7 +1197,35 @@ const server = http.createServer(async (req, res) => {
       if (!job) return sendJSON(res, { error: "Job not found" }, 404);
 
       const body = await parseBody(req);
-      if (body.stage) job.current_stage = body.stage;
+      if (body.stage && job.current_stage !== body.stage) {
+        const stages = ['queue', 'printing', 'lamination', 'die_cutting', 'outside_pasting', 'delivered'];
+        const oldIndex = stages.indexOf(job.current_stage);
+        const newIndex = stages.indexOf(body.stage);
+        
+        if (newIndex < oldIndex) {
+            // Rollback logic
+            if (newIndex < stages.indexOf('delivered')) {
+                job.delivered_qty = 0;
+                job.status = 'active';
+            }
+            if (newIndex < stages.indexOf('outside_pasting')) {
+                job.pasting_cost = 0;
+                job.pasting_received_qty = 0;
+                job.pasting_rate_per_box = 0;
+            }
+            if (newIndex < stages.indexOf('die_cutting')) {
+                job.total_amount = (job.total_amount || 0) - (job.diecut_cost || 0);
+                job.diecut_cost = 0;
+                job.diecut_rate = 0;
+            }
+            if (newIndex < stages.indexOf('lamination')) {
+                job.total_amount = (job.total_amount || 0) - (job.lamination_cost || 0);
+                job.lamination_cost = 0;
+                job.lamination_rate = 0;
+            }
+        }
+        job.current_stage = body.stage;
+      }
       if (body.solna_machine) job.solna_machine = parseInt(body.solna_machine);
       if (body.produced_qty !== undefined) job.produced_qty = parseInt(body.produced_qty);
       if (body.pasting_rate_per_box !== undefined) {

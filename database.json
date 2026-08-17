@@ -16,7 +16,7 @@
       "name": "Robinson pharma",
       "company": "Healthcare",
       "phone": "03024598791",
-      "balance": 146320,
+      "balance": 585280,
       "initial_balance": 0,
       "created_at": "2026-08-17T11:48:38.347Z"
     },
@@ -25,7 +25,7 @@
       "name": "McOlson",
       "company": "Healthcare",
       "phone": "03024598791",
-      "balance": 247719,
+      "balance": 1486314,
       "initial_balance": 0,
       "created_at": "2026-08-17T11:50:00.954Z"
     }
@@ -125,7 +125,7 @@
       "created_at": "2026-08-17T11:45:47.601Z"
     }
   ],
-    "client_transactions": [
+  "client_transactions": [
     {
       "id": 1,
       "client_id": 2,
@@ -147,6 +147,94 @@
       "debit": 146320,
       "credit": 0,
       "balance_after": 146320
+    },
+    {
+      "id": 3,
+      "client_id": 1,
+      "job_no": "JOB-1002",
+      "date": "2026-08-17",
+      "type": "INVOICE",
+      "description": "Delivered 24800 boxes of Orex plus syp 120ml (1) @ Rs. 5.90/box",
+      "debit": 146320,
+      "credit": 0,
+      "balance_after": 292640
+    },
+    {
+      "id": 4,
+      "client_id": 2,
+      "job_no": "JOB-1001",
+      "date": "2026-08-17",
+      "type": "INVOICE",
+      "description": "Delivered 58150 boxes of Neoprad 50mg @ Rs. 4.26/box",
+      "debit": 247719,
+      "credit": 0,
+      "balance_after": 495438
+    },
+    {
+      "id": 5,
+      "client_id": 1,
+      "job_no": "JOB-1002",
+      "date": "2026-08-17",
+      "type": "INVOICE",
+      "description": "Delivered 24800 boxes of Orex plus syp 120ml (1) @ Rs. 5.90/box",
+      "debit": 146320,
+      "credit": 0,
+      "balance_after": 438960
+    },
+    {
+      "id": 6,
+      "client_id": 2,
+      "job_no": "JOB-1001",
+      "date": "2026-08-17",
+      "type": "INVOICE",
+      "description": "Delivered 58150 boxes of Neoprad 50mg @ Rs. 4.26/box",
+      "debit": 247719,
+      "credit": 0,
+      "balance_after": 743157
+    },
+    {
+      "id": 7,
+      "client_id": 2,
+      "job_no": "JOB-1001",
+      "date": "2026-08-17",
+      "type": "INVOICE",
+      "description": "Delivered 58150 boxes of Neoprad 50mg @ Rs. 4.26/box",
+      "debit": 247719,
+      "credit": 0,
+      "balance_after": 990876
+    },
+    {
+      "id": 8,
+      "client_id": 2,
+      "job_no": "JOB-1001",
+      "date": "2026-08-17",
+      "type": "INVOICE",
+      "description": "Delivered 58150 boxes of Neoprad 50mg @ Rs. 4.26/box",
+      "debit": 247719,
+      "credit": 0,
+      "balance_after": 1238595
+    },
+    {
+      "id": 9,
+      "client_id": 2,
+      "job_no": "JOB-1001",
+      "date": "2026-08-17",
+      "type": "INVOICE",
+      "description": "Delivered 58150 boxes of Neoprad 50mg @ Rs. 4.26/box",
+      "debit": 247719,
+      "credit": 0,
+      "balance_after": 1486314
+    },
+    {
+      "id": 10,
+      "client_id": 1,
+      "job_no": "JOB-1002",
+      "date": "2026-08-17",
+      "type": "INVOICE",
+      "description": "Delivered 24800 boxes of Orex plus syp 120ml (1) @ Rs. 5.90/box",
+      "debit": 146320,
+      "credit": 0,
+      "balance_after": 585280
     }
   ],
   "jobs": [
@@ -170,7 +258,7 @@
       "material_cost": 124635,
       "lamination_cost": 0,
       "die_cut_cost": 0,
-      "current_stage": "delivered",
+      "current_stage": "outside_pasting",
       "solna_machine": 1,
       "produced_qty": 0,
       "delivered_qty": 58150,
@@ -185,9 +273,8 @@
       "diecut_cost": 4200,
       "pasting_rate_per_box": 0.2,
       "pasting_sent_qty": 60000,
-      "pasting_received_qty": 58150,
-      "pasting_cost": 11630,
-      "is_billed": true
+      "pasting_received_qty": 0,
+      "pasting_cost": 69780
     },
     {
       "id": 2,
@@ -207,25 +294,25 @@
       ],
       "print_cost": 15120,
       "material_cost": 87244,
-      "lamination_cost": 0,
-      "die_cut_cost": 2940,
-      "current_stage": "delivered",
+      "lamination_cost": 10718.75,
+      "die_cut_cost": 0,
+      "current_stage": "outside_pasting",
       "solna_machine": 1,
       "produced_qty": 0,
       "delivered_qty": 24800,
       "status": "completed",
       "created_at": "2026-08-17T11:55:27.409Z",
-      "lamination_type": "none",
-      "lamination_rate": 0,
+      "lamination_type": "uv",
+      "lamination_rate": 1.2,
       "lamination_sheet_w": 24.5,
       "lamination_sheet_h": 12.5,
-      "total_amount": 10718.75,
+      "total_amount": 48755,
       "diecut_rate": 0.7,
-      "pasting_rate_per_box": 0,
+      "diecut_cost": 2940,
+      "pasting_rate_per_box": 0.5,
       "pasting_sent_qty": 25200,
-      "pasting_received_qty": 24800,
-      "pasting_cost": 0,
-      "is_billed": true
+      "pasting_received_qty": 0,
+      "pasting_cost": 49600
     }
   ],
   "machines": [],

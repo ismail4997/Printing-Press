@@ -16,7 +16,7 @@
       "name": "Robinson pharma",
       "company": "Healthcare",
       "phone": "03024598791",
-      "balance": 148680,
+      "balance": 146320,
       "initial_balance": 0,
       "created_at": "2026-08-17T11:48:38.347Z"
     },
@@ -143,10 +143,10 @@
       "job_no": "JOB-1002",
       "date": "2026-08-17",
       "type": "INVOICE",
-      "description": "Delivered 25200 boxes of Orex plus syp 120ml (1) @ Rs. 5.90/box",
-      "debit": 148680,
+      "description": "Delivered 24800 boxes of Orex plus syp 120ml (1) @ Rs. 5.90/box",
+      "debit": 146320,
       "credit": 0,
-      "balance_after": 148680
+      "balance_after": 146320
     }
   ],
   "jobs": [
@@ -212,7 +212,7 @@
       "current_stage": "delivered",
       "solna_machine": 1,
       "produced_qty": 0,
-      "delivered_qty": 25200,
+      "delivered_qty": 24800,
       "status": "completed",
       "created_at": "2026-08-17T11:55:27.409Z",
       "lamination_type": "uv",
@@ -224,8 +224,8 @@
       "diecut_cost": 2100,
       "pasting_rate_per_box": 0.6,
       "pasting_sent_qty": 25200,
-      "pasting_received_qty": 25200,
-      "pasting_cost": 15120,
+      "pasting_received_qty": 24800,
+      "pasting_cost": 14880,
       "is_billed": true
     }
   ],

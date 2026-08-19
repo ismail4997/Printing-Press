@@ -1988,13 +1988,23 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('form-deliver').addEventListener('submit', async (e) => {
         e.preventDefault();
         const jobId = document.getElementById('deliver-job-id').value;
-        const deliverQty = document.getElementById('deliver-qty').value;
+        const deliverQty = parseInt(document.getElementById('deliver-qty').value);
+        
+        const job = state.jobs.find(j => j.id == jobId);
+        if (job && deliverQty > job.order_qty) {
+           alert(`Error: You cannot deliver ${deliverQty} boxes. It exceeds the total order quantity of ${job.order_qty} boxes!`);
+           return;
+        }
+
+        if (!confirm(`Are you sure you want to finalize delivery for ${deliverQty} boxes?\nThis will create/update the invoice in Customer Accounts.`)) {
+           return;
+        }
         
         try {
           await fetch(`/api/jobs/${jobId}/deliver`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ deliver_qty: parseInt(deliverQty) })
+            body: JSON.stringify({ deliver_qty: deliverQty })
           });
           closeModal('modal-deliver');
           await loadAllData();

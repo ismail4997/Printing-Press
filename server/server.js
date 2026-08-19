@@ -1334,6 +1334,7 @@ const server = http.createServer(async (req, res) => {
       let deliverQty = parseInt(body.deliver_qty) || 0;
       
       if (deliverQty <= 0) return sendJSON(res, { error: "Quantity must be greater than 0" }, 400);
+      if (deliverQty > job.order_qty) return sendJSON(res, { error: `Cannot deliver more than total order quantity (${job.order_qty})` }, 400);
       
       if (job.pasting_rate_per_box) {
          const pastingCost = deliverQty * job.pasting_rate_per_box;

@@ -28,15 +28,18 @@ function parseBody(req) {
 }
 
 // Helper to send JSON responses
-function sendJSON(res, data, statusCode = 200) {
+const sendJSON = (res, data, statusCode = 200) => {
   res.writeHead(statusCode, {
     'Content-Type': 'application/json',
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type'
   });
   res.end(JSON.stringify(data));
-}
+};
 
 // Static file server
 function serveStaticFile(req, res, pathname) {

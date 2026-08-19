@@ -1992,11 +1992,22 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const job = state.jobs.find(j => j.id == jobId);
         if (job && deliverQty > job.order_qty) {
-           alert(`Error: You cannot deliver ${deliverQty} boxes. It exceeds the total order quantity of ${job.order_qty} boxes!`);
+           showToast("Invalid Quantity", `You cannot deliver ${deliverQty} boxes. It exceeds the total order quantity of ${job.order_qty}.`, 'error');
            return;
         }
 
-        if (!confirm(`Are you sure you want to finalize delivery for ${deliverQty} boxes?\nThis will create/update the invoice in Customer Accounts.`)) {
+        const isConfirmed = await showConfirm({
+           title: "Confirm Delivery",
+           message: "Are you sure you want to finalize delivery? This will update the invoice in Customer Accounts.",
+           details: [
+              { label: "Job Number", value: job ? job.job_no : jobId },
+              { label: "Quantity", value: `${deliverQty} boxes` }
+           ],
+           confirmText: "Deliver",
+           confirmClass: "btn-emerald"
+        });
+
+        if (!isConfirmed) {
            return;
         }
         

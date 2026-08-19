@@ -82,15 +82,20 @@ class Database {
   async save() {
     if (SUPABASE_URL && SUPABASE_KEY) {
       try {
-        await fetch(`${SUPABASE_URL}/rest/v1/app_state?id=eq.1`, {
+        const saveRes = await fetch(`${SUPABASE_URL}/rest/v1/app_state?id=eq.1`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
             'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Prefer': 'return=minimal'
           },
           body: JSON.stringify({ data: this.data })
         });
+        if (!saveRes.ok) {
+          const errText = await saveRes.text();
+          console.error("Supabase save failed:", saveRes.status, errText);
+        }
       } catch (err) {
         console.error("Failed to save to Supabase:", err);
       }

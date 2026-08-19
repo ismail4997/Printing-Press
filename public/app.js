@@ -635,7 +635,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const tbody = document.getElementById('table-inventory-body');
     if (!tbody) return;
 
-    tbody.innerHTML = state.inventory.map(item => {
+    const activeInventory = state.inventory.filter(item => item.pkt_qty > 0);
+    tbody.innerHTML = activeInventory.map(item => {
       const isLow = item.pkt_qty <= item.min_alert_pkts;
       return `
         <tr>
@@ -717,10 +718,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const item = state.inventory.find(i => i.id === invId);
     if (!item) return;
 
-    document.getElementById('order-paper-type').value = item.paper_type;
-    document.getElementById('order-gsm').value = item.gsm;
-    document.getElementById('order-w').value = item.size_w;
-    document.getElementById('order-h').value = item.size_h;
+    const container = document.getElementById('order-items-container');
+    if (container) {
+        const rows = container.querySelectorAll('.order-item-row');
+        for(let i = 1; i < rows.length; i++) rows[i].remove();
+        
+        const firstRow = container.querySelector('.order-item-row');
+        if (firstRow) {
+            firstRow.querySelector('.order-paper-type').value = item.paper_type;
+            firstRow.querySelector('.order-gsm').value = item.gsm;
+            firstRow.querySelector('.order-w').value = item.size_w;
+            firstRow.querySelector('.order-h').value = item.size_h;
+        }
+    }
     openModal('modal-order');
   };
 

@@ -46,7 +46,7 @@ class Database {
         const rows = await res.json();
         if (rows && rows.length > 0 && rows[0].data) {
           this.data = rows[0].data;
-          this.migrate();
+          await this.migrate();
         } else {
            console.log("No Supabase data found, starting fresh.");
         }
@@ -56,41 +56,44 @@ class Database {
     } else {
       console.log("Using local JSON file");
       if (!fs.existsSync(DB_FILE)) {
-        this.save();
+        await this.save();
       } else {
         try {
           const raw = fs.readFileSync(DB_FILE, 'utf-8');
           this.data = JSON.parse(raw);
-          this.migrate();
+          await this.migrate();
         } catch (err) {
           console.error("Error loading database file, initializing new:", err);
-          this.save();
+          await this.save();
         }
       }
     }
   }
 
-  migrate() {
+  async migrate() {
     let dirty = false;
     // Migrate: add missing collections
     if (!this.data.vendor_bills) { this.data.vendor_bills = []; dirty = true; }
     if (!this.data.purchase_orders) { this.data.purchase_orders = []; dirty = true; }
     if (!this.data.client_products) { this.data.client_products = []; dirty = true; }
-    if (dirty) this.save();
+    if (dirty) await this.save();
   }
 
-  save() {
+  async save() {
     if (SUPABASE_URL && SUPABASE_KEY) {
-      // Async fire-and-forget save to Supabase
-      fetch(`${SUPABASE_URL}/rest/v1/app_state?id=eq.1`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`
-        },
-        body: JSON.stringify({ data: this.data })
-      }).catch(err => console.error("Failed to save to Supabase:", err));
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/app_state?id=eq.1`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+          },
+          body: JSON.stringify({ data: this.data })
+        });
+      } catch (err) {
+        console.error("Failed to save to Supabase:", err);
+      }
     } else {
       try {
         fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');

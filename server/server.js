@@ -176,7 +176,7 @@ const server = http.createServer(async (req, res) => {
         createdOrders.push(order);
       }
       
-      db.save();
+      await db.save();
 
       return sendJSON(res, { message: "Order placed successfully", orders: createdOrders, vendor_name: vendor.name });
     }
@@ -301,7 +301,7 @@ const server = http.createServer(async (req, res) => {
       // Link bill to transaction
       vTx.bill_id = bill.id;
 
-      db.save();
+      await db.save();
 
       return sendJSON(res, { 
         message: "Goods received! Stock added, bill created, and vendor ledger updated.",
@@ -325,7 +325,7 @@ const server = http.createServer(async (req, res) => {
         po.size_h = parseFloat(body.size_h);
         po.ordered_pkts = parseInt(body.ordered_pkts);
         po.rate_per_kg = parseFloat(body.rate_per_kg);
-        db.save();
+        await db.save();
         return sendJSON(res, { message: "Purchase order updated", item: po });
       } else if (po.status === 'received') {
         // CASCADE EDIT for received order
@@ -416,7 +416,7 @@ const server = http.createServer(async (req, res) => {
         });
         
         vendor.balance = currentBalance;
-        db.save();
+        await db.save();
         return sendJSON(res, { message: "Purchase order and ledger updated successfully", item: po });
       } else {
          return sendJSON(res, { error: "Cannot edit an order in this status" }, 400);
@@ -433,7 +433,7 @@ const server = http.createServer(async (req, res) => {
       if (po.status !== 'ordered') return sendJSON(res, { error: "Cannot delete a received order" }, 400);
 
       db.data.purchase_orders.splice(poIndex, 1);
-      db.save();
+      await db.save();
       return sendJSON(res, { message: "Purchase order deleted" });
     }
 
@@ -495,7 +495,7 @@ const server = http.createServer(async (req, res) => {
         db.data.inventory.push(targetStock);
       }
 
-      db.save();
+      await db.save();
       return sendJSON(res, { message: "Stock cut successfully", sourceStock, targetStock });
     }
 
@@ -597,7 +597,7 @@ const server = http.createServer(async (req, res) => {
         });
       }
 
-      db.save();
+      await db.save();
 
       return sendJSON(res, { message: "Stock purchased and vendor ledger updated!", item, vendorTransaction: vTx, bill });
     }
@@ -633,7 +633,7 @@ const server = http.createServer(async (req, res) => {
         });
       }
 
-      db.save();
+      await db.save();
       return sendJSON(res, newVendor);
     }
 
@@ -680,7 +680,7 @@ const server = http.createServer(async (req, res) => {
         t.balance_after = runningBalance;
       });
       vendor.balance = runningBalance;
-      db.save();
+      await db.save();
       return sendJSON(res, { message: "Opening balance updated", vendor });
     }
 
@@ -716,7 +716,7 @@ const server = http.createServer(async (req, res) => {
         balance_after: vendor.balance
       };
       db.data.vendor_transactions.push(vTx);
-      db.save();
+      await db.save();
 
       return sendJSON(res, { message: "Payment recorded successfully", vendor, transaction: vTx });
     }
@@ -767,7 +767,7 @@ const server = http.createServer(async (req, res) => {
         balance_after: vendor.balance
       };
       db.data.vendor_transactions.push(vTx);
-      db.save();
+      await db.save();
 
       return sendJSON(res, { message: "Payment recorded against bill", vendor, bill, transaction: vTx });
     }
@@ -839,7 +839,7 @@ const server = http.createServer(async (req, res) => {
       });
       
       vendor.balance = currentBalance;
-      db.save();
+      await db.save();
       return sendJSON(res, { message: "Bill and related transactions reversed and deleted successfully" });
     }
 
@@ -891,7 +891,7 @@ const server = http.createServer(async (req, res) => {
       });
 
       vendor.balance = runningBalance;
-      db.save();
+      await db.save();
 
       return sendJSON(res, { message: "Transaction deleted and balance recalculated", vendor });
     }
@@ -927,7 +927,7 @@ const server = http.createServer(async (req, res) => {
         });
       }
 
-      db.save();
+      await db.save();
       return sendJSON(res, newClient);
     }
 
@@ -974,7 +974,7 @@ const server = http.createServer(async (req, res) => {
         t.balance_after = runningBalanceC;
       });
       client.balance = runningBalanceC;
-      db.save();
+      await db.save();
       return sendJSON(res, { message: "Opening balance updated", client });
     }
 
@@ -1010,7 +1010,7 @@ const server = http.createServer(async (req, res) => {
         balance_after: client.balance
       };
       db.data.client_transactions.push(cTx);
-      db.save();
+      await db.save();
 
       return sendJSON(res, { message: "Payment received recorded successfully", client, transaction: cTx });
     }
@@ -1052,7 +1052,7 @@ const server = http.createServer(async (req, res) => {
       });
 
       client.balance = runningBalance;
-      db.save();
+      await db.save();
 
       return sendJSON(res, { message: "Transaction deleted and balance recalculated", client });
     }
@@ -1091,7 +1091,7 @@ const server = http.createServer(async (req, res) => {
         existing.colors = parseInt(body.colors) || 1;
         existing.rate_per_box = parseFloat(body.rate_per_box) || 0;
         existing.updated_at = new Date().toISOString();
-        db.save();
+        await db.save();
         return sendJSON(res, existing);
       }
 
@@ -1107,7 +1107,7 @@ const server = http.createServer(async (req, res) => {
         description: body.description || ''
       };
       db.data.client_products.push(newProduct);
-      db.save();
+      await db.save();
       return sendJSON(res, newProduct);
     }
 
@@ -1129,7 +1129,7 @@ const server = http.createServer(async (req, res) => {
         product.description = body.description;
       }
       
-      db.save();
+      await db.save();
       return sendJSON(res, product);
     }
 
@@ -1184,7 +1184,7 @@ const server = http.createServer(async (req, res) => {
 
       db.data.jobs.push(newJob);
 
-      db.save();
+      await db.save();
       
       return sendJSON(res, { message: "Stock issued and Job created", job: newJob });
     }
@@ -1234,7 +1234,7 @@ const server = http.createServer(async (req, res) => {
         job.pasting_received_qty = 0;
       }
 
-      db.save();
+      await db.save();
       return sendJSON(res, job);
     }
 
@@ -1258,7 +1258,7 @@ const server = http.createServer(async (req, res) => {
 
       // Bill to client ledger logic removed for box-based billing
 
-      db.save();
+      await db.save();
       return sendJSON(res, job);
     }
 
@@ -1279,7 +1279,7 @@ const server = http.createServer(async (req, res) => {
 
       // Bill to client ledger logic removed for box-based billing
 
-      db.save();
+      await db.save();
       return sendJSON(res, job);
     }
 
@@ -1320,7 +1320,7 @@ const server = http.createServer(async (req, res) => {
         });
       }
 
-      db.save();
+      await db.save();
       return sendJSON(res, { message: "Pasting dispatch updated", job });
     }
 
@@ -1401,7 +1401,7 @@ const server = http.createServer(async (req, res) => {
         }
       }
 
-      db.save();
+      await db.save();
       return sendJSON(res, { message: "Delivery and Invoicing recorded successfully", job });
     }
 
@@ -1426,3 +1426,4 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
 }
 
 export default server;
+

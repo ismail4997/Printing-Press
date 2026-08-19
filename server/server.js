@@ -1357,23 +1357,46 @@ const server = http.createServer(async (req, res) => {
         ratePerBox = product.rate_per_box;
       }
 
-      if (ratePerBox > 0 && deliverQty > 0 && !job.is_billed) {
+      if (ratePerBox > 0 && deliverQty > 0) {
         const invoiceAmount = deliverQty * ratePerBox;
         const client = db.data.clients.find(c => c.id === job.client_id);
         if (client) {
-          client.balance += invoiceAmount;
-          db.data.client_transactions.push({
-            id: db.getNextId('client_transactions'),
-            client_id: client.id,
-            job_no: job.job_no,
-            date: new Date().toISOString().split('T')[0],
-            type: "INVOICE",
-            description: `Delivered ${deliverQty} boxes of ${job.job_title} @ Rs. ${ratePerBox.toFixed(2)}/box`,
-            debit: invoiceAmount,
-            credit: 0,
-            balance_after: client.balance
-          });
-          job.is_billed = true;
+          if (!job.is_billed) {
+            client.balance += invoiceAmount;
+            db.data.client_transactions.push({
+              id: db.getNextId('client_transactions'),
+              client_id: client.id,
+              job_no: job.job_no,
+              date: new Date().toISOString().split('T')[0],
+              type: "INVOICE",
+              description: `Delivered ${deliverQty} boxes of ${job.job_title} @ Rs. ${ratePerBox.toFixed(2)}/box`,
+              debit: invoiceAmount,
+              credit: 0,
+              balance_after: client.balance
+            });
+            job.is_billed = true;
+          } else {
+            // Find existing invoice and update it
+            const invoice = db.data.client_transactions.find(t => t.client_id === client.id && t.job_no === job.job_no && t.type === "INVOICE");
+            if (invoice) {
+               invoice.description = `Delivered ${deliverQty} boxes of ${job.job_title} @ Rs. ${ratePerBox.toFixed(2)}/box`;
+               invoice.debit = invoiceAmount;
+               
+               // Recalculate client ledger to ensure correctness
+               let currentBalance = 0;
+               const clientTxs = db.data.client_transactions
+                 .filter(t => t.client_id === client.id)
+                 .sort((a, b) => a.id - b.id);
+                 
+               clientTxs.forEach(t => {
+                 currentBalance += (t.debit || 0);
+                 currentBalance -= (t.credit || 0);
+                 t.balance_after = currentBalance;
+               });
+               
+               client.balance = currentBalance;
+            }
+          }
         }
       }
 

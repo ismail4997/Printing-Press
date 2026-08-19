@@ -7,7 +7,11 @@ const __dirname = path.dirname(__filename);
 
 const DB_FILE = path.join(__dirname, '..', 'database.json');
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
+let SUPABASE_URL = process.env.SUPABASE_URL;
+if (SUPABASE_URL) {
+  // Strip trailing slashes and /rest/v1 if the user pasted the full path
+  SUPABASE_URL = SUPABASE_URL.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+}
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
 // Initial default data structure

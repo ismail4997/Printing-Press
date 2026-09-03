@@ -2069,6 +2069,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (type === 'matte') rateInput.value = 3.50;
         else if (type === 'shine') rateInput.value = 2.30;
         else if (type === 'uv') rateInput.value = 1.20;
+        else if (type === 'spot_uv') rateInput.value = 3.40;
         else if (type === 'both') rateInput.value = 5.80;
         else if (type === 'none') rateInput.value = 0;
         // if 3d, leave whatever they put or set a default

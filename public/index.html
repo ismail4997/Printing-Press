@@ -224,7 +224,7 @@
               </div>
 
               <div class="form-group">
-                <label>GSM</label>
+                <label>GSM / Microns</label>
                 <input type="number" id="calc-gsm" value="300" required>
               </div>
 
@@ -955,7 +955,7 @@
               </div>
               
               <div class="flex flex-col gap-1.5">
-                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase">GSM</label>
+                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase">GSM / Microns</label>
                 <input type="number" class="order-gsm bg-slate-900 border border-slate-600 rounded p-2 text-slate-100 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" value="300" required>
               </div>
               
@@ -970,12 +970,12 @@
               </div>
               
               <div class="flex flex-col gap-1.5">
-                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase">Packets</label>
+                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase">Packets / Qty</label>
                 <input type="number" class="order-pkts bg-slate-900 border border-slate-600 rounded p-2 text-slate-100 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" value="20" required>
               </div>
               
               <div class="flex flex-col gap-1.5">
-                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase">Est. Rate/KG</label>
+                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase">Est. Rate (KG/Unit)</label>
                 <input type="number" class="order-rate-kg bg-slate-900 border border-slate-600 rounded p-2 text-slate-100 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" value="145" step="1" required>
               </div>
 
@@ -1012,7 +1012,7 @@
           <input type="number" id="receive-pkts" required class="stock-calc-input">
         </div>
         <div class="form-group">
-          <label>Actual Rate per KG (Rs)</label>
+          <label>Actual Rate (KG/Unit) (Rs)</label>
           <input type="number" id="receive-rate-kg" step="1" required class="stock-calc-input">
         </div>
         <div class="form-group">
@@ -1095,7 +1095,7 @@
           </select>
         </div>
         <div class="form-group">
-          <label>GSM</label>
+          <label>GSM / Microns</label>
           <input type="number" id="edit-po-gsm" required>
         </div>
         <div class="form-group">
@@ -1111,7 +1111,7 @@
           <input type="number" id="edit-po-qty" required>
         </div>
         <div class="form-group">
-          <label>Est. Rate per KG (Rs)</label>
+          <label>Est. Rate (KG/Unit) (Rs)</label>
           <input type="number" id="edit-po-rate" step="1" required>
         </div>
         <div class="form-footer full-width">
@@ -1433,4 +1433,6 @@
   <script src="app.js?v=3"></script>
 </body>
 </html>
+
+
 

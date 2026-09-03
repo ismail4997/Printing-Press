@@ -153,8 +153,9 @@ const server = http.createServer(async (req, res) => {
         const gsm = parseFloat(item.gsm) || 0;
         const rateKg = parseFloat(item.rate_per_kg) || 0;
         const pkts = parseInt(item.ordered_pkts) || 0;
-        const weightPerPkt = (L * W * gsm) / 15500;
-        const estimatedTotal = Math.round(weightPerPkt * rateKg * pkts);
+        const isWindow = (item.paper_type === 'PVC Window Film');
+          const weightPerPkt = isWindow ? 0 : (L * W * gsm) / 15500;
+          const estimatedTotal = isWindow ? (rateKg * pkts) : Math.round(weightPerPkt * rateKg * pkts);
 
         const order = {
           id: db.getNextId('purchase_orders'),
@@ -203,10 +204,11 @@ const server = http.createServer(async (req, res) => {
       const paymentType = body.payment_type || 'credit';
       const creditDays = parseInt(body.credit_days) || 30;
 
-      const weightPerPkt = (actualSizeW * actualSizeH * actualGsm) / 15500;
-      const ratePerPkt = Math.round(weightPerPkt * actualRateKg);
-      const totalAmount = ratePerPkt * receivedPkts;
-      const sheetQty = receivedPkts * 100;
+      const isWindow = (order.paper_type === 'PVC Window Film');
+        const weightPerPkt = isWindow ? 0 : (actualSizeW * actualSizeH * actualGsm) / 15500;
+        const ratePerPkt = isWindow ? actualRateKg : Math.round(weightPerPkt * actualRateKg);
+        const totalAmount = ratePerPkt * receivedPkts;
+        const sheetQty = isWindow ? receivedPkts : receivedPkts * 100;
 
       // 1. Add to Inventory
       let item = db.data.inventory.find(i => 
@@ -394,8 +396,9 @@ const server = http.createServer(async (req, res) => {
         }
 
         // 5. Apply New Bill & Ledger
-        const weightPerPkt = (po.size_w * po.size_h * po.gsm) / 15500;
-        const newTotal = Math.round(weightPerPkt * po.rate_per_kg * po.received_pkts);
+        const isWindow = (po.paper_type === 'PVC Window Film');
+          const weightPerPkt = isWindow ? 0 : (po.size_w * po.size_h * po.gsm) / 15500;
+          const newTotal = isWindow ? (po.rate_per_kg * po.received_pkts) : Math.round(weightPerPkt * po.rate_per_kg * po.received_pkts);
         
         bill.description = `PO-${po.order_no}: ${po.received_pkts} Pkts ${po.paper_type} ${po.gsm}gsm (${po.size_w}x${po.size_h}) @ Rs. ${po.rate_per_kg}/kg`;
         bill.paper_type = po.paper_type;
@@ -1445,6 +1448,7 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
 }
 
 export default server;
+
 
 
 

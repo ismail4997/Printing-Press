@@ -560,8 +560,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${order.date}</td>
           <td>${order.vendor_name}</td>
           <td>${order.paper_type} ${order.gsm}gsm<br><small>${order.size_w}x${order.size_h}"</small></td>
-          <td>${order.ordered_pkts} Pkts</td>
-          <td>Rs. ${order.rate_per_kg}/KG</td>
+          <td>${order.ordered_pkts} ${order.paper_type === 'PVC Window Film' ? 'Sheets' : 'Pkts'}</td>
+          <td>Rs. ${order.rate_per_kg}/${order.paper_type === 'PVC Window Film' ? 'Sheet' : 'KG'}</td>
           <td>${isReceived ? '<span class="badge badge-success">RECEIVED</span>' : '<span class="badge badge-warning">ORDERED</span>'}</td>
           <td>
             <div style="display:flex; gap:0.25rem;">
@@ -643,8 +643,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <td><strong>${item.paper_type}</strong></td>
           <td>${item.gsm} GSM</td>
           <td>${item.size_w}" x ${item.size_h}"</td>
-          <td><strong style="font-size: 1.1rem; color: ${isLow ? 'var(--amber)' : 'var(--cyan)'};">${item.pkt_qty} Pkts</strong></td>
-          <td>${item.sheet_qty.toLocaleString()} sheets</td>
+          <td><strong style="font-size: 1.1rem; color: ${isLow ? 'var(--amber)' : 'var(--cyan)'};">${item.pkt_qty} ${item.paper_type === 'PVC Window Film' ? 'Sheets' : 'Pkts'}</strong></td>
+          <td>${item.paper_type === 'PVC Window Film' ? '-' : item.sheet_qty.toLocaleString() + ' sheets'}</td>
           <td>${isLow ? '<span class="badge badge-warning">Low Stock</span>' : '<span class="badge badge-success">In Stock</span>'}</td>
           <td>
             <div style="display:flex; gap:0.25rem;">
@@ -2265,6 +2265,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start application
   init();
 });
+
 
 
 

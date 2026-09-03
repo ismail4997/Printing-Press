@@ -213,13 +213,13 @@
               </div>
 
               <div class="form-group">
-                <label>Paper Type</label>
+                <label>Material Type</label>
                 <select id="calc-paper-type">
-                  <option value="Bleach Card" selected>Bleach Card</option>
+                  <optgroup label="Paper & Boards"><option value="Bleach Card" selected>Bleach Card</option>
                   <option value="Art Paper">Art Paper</option>
                   <option value="Sticker Paper">Sticker Paper</option>
-                  <option value="Duplex Board">Duplex Board</option>
-                    <option value="PVC Window Film">PVC Window Film</option>
+                  <option value="Duplex Board">Duplex Board</option></optgroup>
+                    <optgroup label="Plastics & Films"><option value="PVC Window Film">PVC Window Film</option></optgroup>
                 </select>
               </div>
 
@@ -943,13 +943,13 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               
               <div class="flex flex-col gap-1.5 col-span-1 sm:col-span-2 md:col-span-1">
-                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase">Paper Grade</label>
+                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase">Material Type</label>
                 <select class="order-paper-type bg-slate-900 border border-slate-600 rounded p-2 text-slate-100 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none w-full" required>
-                  <option value="Bleach Card">Bleach Card</option>
+                  <optgroup label="Paper & Boards"><option value="Bleach Card">Bleach Card</option>
                   <option value="Art Paper">Art Paper</option>
                   <option value="Sticker Paper">Sticker Paper</option>
-                  <option value="Duplex Board">Duplex Board</option>
-                    <option value="PVC Window Film">PVC Window Film</option>
+                  <option value="Duplex Board">Duplex Board</option></optgroup>
+                    <optgroup label="Plastics & Films"><option value="PVC Window Film">PVC Window Film</option></optgroup>
                   <option value="Reel">Reel</option>
                 </select>
               </div>
@@ -1084,13 +1084,13 @@
       <form id="form-edit-po" class="modal-body form-grid">
         <input type="hidden" id="edit-po-id">
         <div class="form-group">
-          <label>Paper Grade</label>
+          <label>Material Type</label>
           <select id="edit-po-type" required>
-            <option value="Bleach Card">Bleach Card</option>
+            <optgroup label="Paper & Boards"><option value="Bleach Card">Bleach Card</option>
             <option value="Art Paper">Art Paper</option>
             <option value="Sticker Paper">Sticker Paper</option>
-            <option value="Duplex Board">Duplex Board</option>
-                    <option value="PVC Window Film">PVC Window Film</option>
+            <option value="Duplex Board">Duplex Board</option></optgroup>
+                    <optgroup label="Plastics & Films"><option value="PVC Window Film">PVC Window Film</option></optgroup>
             <option value="Reel">Reel</option>
           </select>
         </div>
@@ -1433,6 +1433,8 @@
   <script src="app.js?v=3"></script>
 </body>
 </html>
+
+
 
 
 

@@ -31,6 +31,7 @@ const initialData = {
 class Database {
   constructor() {
     this.data = initialData;
+    this._saveTimer = null;
   }
 
   async init() {
@@ -46,7 +47,7 @@ class Database {
         const rows = await res.json();
         if (rows && rows.length > 0 && rows[0].data) {
           this.data = rows[0].data;
-          await this.migrate();
+          this.migrate();
         } else {
            console.log("No Supabase data found, starting fresh.");
         }
@@ -56,33 +57,38 @@ class Database {
     } else {
       console.log("Using local JSON file");
       if (!fs.existsSync(DB_FILE)) {
-        await this.save();
+        this.save();
       } else {
         try {
           const raw = fs.readFileSync(DB_FILE, 'utf-8');
           this.data = JSON.parse(raw);
-          await this.migrate();
+          this.migrate();
         } catch (err) {
           console.error("Error loading database file, initializing new:", err);
-          await this.save();
+          this.save();
         }
       }
     }
   }
 
-  async migrate() {
+  migrate() {
     let dirty = false;
     // Migrate: add missing collections
     if (!this.data.vendor_bills) { this.data.vendor_bills = []; dirty = true; }
     if (!this.data.purchase_orders) { this.data.purchase_orders = []; dirty = true; }
     if (!this.data.client_products) { this.data.client_products = []; dirty = true; }
-    if (dirty) await this.save();
+    if (dirty) this.save();
   }
 
-  async save() {
+  save() {
     if (SUPABASE_URL && SUPABASE_KEY) {
-      try {
-        const saveRes = await fetch(`${SUPABASE_URL}/rest/v1/app_state?id=eq.1`, {
+      // PERFORMANCE: Don't wait for Supabase — update memory instantly,
+      // persist to cloud in the background with debouncing.
+      // Multiple rapid saves are batched into one network request.
+      if (this._saveTimer) clearTimeout(this._saveTimer);
+      this._saveTimer = setTimeout(() => {
+        const payload = JSON.stringify({ data: this.data });
+        fetch(`${SUPABASE_URL}/rest/v1/app_state?id=eq.1`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -90,15 +96,11 @@ class Database {
             'Authorization': `Bearer ${SUPABASE_KEY}`,
             'Prefer': 'return=minimal'
           },
-          body: JSON.stringify({ data: this.data })
-        });
-        if (!saveRes.ok) {
-          const errText = await saveRes.text();
-          console.error("Supabase save failed:", saveRes.status, errText);
-        }
-      } catch (err) {
-        console.error("Failed to save to Supabase:", err);
-      }
+          body: payload
+        }).then(res => {
+          if (!res.ok) res.text().then(t => console.error("Supabase save failed:", res.status, t));
+        }).catch(err => console.error("Failed to save to Supabase:", err));
+      }, 300);
     } else {
       try {
         fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');

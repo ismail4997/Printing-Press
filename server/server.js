@@ -1241,6 +1241,22 @@ const server = http.createServer(async (req, res) => {
       return sendJSON(res, job);
     }
 
+    const windowMatch = pathname.match(/^\/api\/jobs\/(\d+)\/window$/);
+    if (windowMatch && method === 'POST') {
+      const jobId = parseInt(windowMatch[1]);
+      const job = db.data.jobs.find(j => j.id === jobId);
+      if (!job) return sendJSON(res, { error: "Job not found" }, 404);
+
+      const body = await parseBody(req);
+      job.window_w = parseFloat(body.window_w) || 0;
+      job.window_h = parseFloat(body.window_h) || 0;
+      job.window_rate = parseFloat(body.window_rate) || 0;
+      job.window_cost = parseFloat(body.window_cost) || 0;
+
+      db.save();
+      return sendJSON(res, { message: "Window cost added", job });
+    }
+
     const laminationMatch = pathname.match(/^\/api\/jobs\/(\d+)\/lamination$/);
     if (laminationMatch && method === 'POST') {
       const jobId = parseInt(laminationMatch[1]);
@@ -1429,4 +1445,7 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
 }
 
 export default server;
+
+
+
 

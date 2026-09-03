@@ -1051,8 +1051,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const laminationCost = stageIdx >= stages.indexOf('lamination') ? (job.lamination_cost || 0) : 0;
       const diecutCost = stageIdx >= stages.indexOf('die_cutting') ? (job.diecut_cost || 0) : 0;
       const pastingCost = stageIdx >= stages.indexOf('outside_pasting') ? (job.pasting_cost || 0) : 0;
+        const windowCost = job.window_cost || 0;
 
-      const totalCost = (job.material_cost || 0) + (job.print_cost || 0) + laminationCost + diecutCost + pastingCost;
+      const totalCost = (job.material_cost || 0) + (job.print_cost || 0) + laminationCost + diecutCost + pastingCost + windowCost;
       const profit = revenue - totalCost;
 
       const isCompleted = job.status === 'completed';
@@ -2059,6 +2060,67 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+      window.openWindowModal = function(jobId) {
+    const job = state.jobs.find(j => j.id === jobId);
+    if (!job) return;
+
+    document.getElementById('window-job-id').value = job.id;
+    document.getElementById('window-job-info').innerText = job.job_no + ' - ' + job.job_title + ' (' + job.order_qty + ' pcs)';
+    document.getElementById('window-w').value = '';
+    document.getElementById('window-h').value = '';
+    document.getElementById('window-total-amount').value = '0';
+
+    openModal('modal-window');
+  };
+
+  function calculateWindowCost() {
+    const w = parseFloat(document.getElementById('window-w').value) || 0;
+    const h = parseFloat(document.getElementById('window-h').value) || 0;
+    const rate = parseFloat(document.getElementById('window-rate').value) || 0;
+    const jobId = document.getElementById('window-job-id').value;
+    
+    if (w <= 0 || h <= 0 || rate <= 0 || !jobId) {
+      document.getElementById('window-total-amount').value = '0';
+      return;
+    }
+    
+    const job = state.jobs.find(j => j.id == jobId);
+    if (!job) return;
+    
+    // Total cost = w * h * rate * order_qty
+    const totalCost = w * h * rate * (job.order_qty || 0);
+    document.getElementById('window-total-amount').value = totalCost.toFixed(2);
+  }
+
+  document.getElementById('window-w').addEventListener('input', calculateWindowCost);
+  document.getElementById('window-h').addEventListener('input', calculateWindowCost);
+  document.getElementById('window-rate').addEventListener('input', calculateWindowCost);
+
+  document.getElementById('form-window').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const jobId = document.getElementById('window-job-id').value;
+    const payload = {
+      window_w: parseFloat(document.getElementById('window-w').value) || 0,
+      window_h: parseFloat(document.getElementById('window-h').value) || 0,
+      window_rate: parseFloat(document.getElementById('window-rate').value) || 0,
+      window_cost: parseFloat(document.getElementById('window-total-amount').value) || 0
+    };
+
+    try {
+      await fetch('/api/jobs/' + jobId + '/window', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      closeModal('modal-window');
+      await loadAllData();
+      switchTab('production');
+    } catch (err) {
+      console.error("Error processing window:", err);
+    }
+  });
+
+
     // Lamination auto-calculation
     function calculateLaminationCost() {
       const type = document.getElementById('lamination-type').value;
@@ -2203,4 +2265,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start application
   init();
 });
+
+
 

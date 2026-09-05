@@ -131,13 +131,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
               const isWindow = document.getElementById('receive-order-summary')?.innerText.includes('PVC Window Film');
         const weightPerPkt = isWindow ? 0 : (L * W * gsm) / DIVISOR;
-        const pricePerPkt = isWindow ? (L * W * rateKg) : weightPerPkt * rateKg;
+        const pricePerPkt = isWindow ? rateKg : weightPerPkt * rateKg;
         const totalAmount = pricePerPkt * pkts;
 
         const formulaEl = document.querySelector('#receive-price-breakdown .pb-formula');
         if (formulaEl) {
           formulaEl.innerText = isWindow 
-            ? '( L × W × Rate × Sheets )' 
+            ? '( Rate × Sheets )' 
             : '( L × W × GSM ) ÷ 15,500 × Rate/KG × Pkts';
         }
 
@@ -2276,6 +2276,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start application
   init();
 });
+
 
 
 

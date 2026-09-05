@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Live Stock Price Calculator (L × W × GSM / 15500 × Rate × Pkts)
+  // Live Stock Price Calculator (L Ã— W Ã— GSM / 15500 Ã— Rate Ã— Pkts)
   function setupStockPriceCalculator() {
     const DIVISOR = 15500;
     
@@ -137,8 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const formulaEl = document.querySelector('#receive-price-breakdown .pb-formula');
         if (formulaEl) {
           formulaEl.innerText = isWindow 
-            ? '( Rate � Sheets )' 
-            : '( L � W � GSM ) � 15,500 � Rate/KG � Pkts';
+            ? '( Rate × Sheets )' 
+            : '( L × W × GSM ) ÷ 15,500 × Rate/KG × Pkts';
         }
 
       const weightEl = document.getElementById('calc-weight-pkt');
@@ -350,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
       state.clientProducts = products;
       const select = document.getElementById('calc-saved-product');
       select.innerHTML = '<option value="">-- New Product --</option>' +
-        products.map(p => `<option value="${p.id}">${p.name} (${p.box_w}" × ${p.box_l}")</option>`).join('');
+        products.map(p => `<option value="${p.id}">${p.name} (${p.box_w}" Ã— ${p.box_l}")</option>`).join('');
     } catch (err) {
       console.error("Error loading client products:", err);
     }
@@ -766,7 +766,7 @@ document.addEventListener('DOMContentLoaded', () => {
     vendorList.innerHTML = filtered.map(v => `
       <div class="list-item-card ${state.selectedVendor && state.selectedVendor.id === v.id ? 'active' : ''}" onclick="selectVendor(${v.id})">
         <div class="name">${v.name}</div>
-        <div class="sub">${v.category.replace('_', ' ').toUpperCase()} • ${v.phone || 'No phone'}</div>
+        <div class="sub">${v.category.replace('_', ' ').toUpperCase()} â€¢ ${v.phone || 'No phone'}</div>
         <div class="balance">Rs. ${v.balance.toLocaleString()} Payable</div>
       </div>
     `).join('');
@@ -838,7 +838,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td><span class="badge ${statusClass}">${statusText}</span></td>
           <td class="print-hide">
             <div style="display:flex; gap:0.25rem;">
-              ${b.status !== 'paid' ? `<button class="btn-pay-bill" onclick="openBillPayModal(${v.id}, ${b.id})">💰 Pay</button>` : '<span style="color:var(--emerald);font-size:0.8rem;">✓ Cleared</span>'}
+              ${b.status !== 'paid' ? `<button class="btn-pay-bill" onclick="openBillPayModal(${v.id}, ${b.id})">ðŸ’° Pay</button>` : '<span style="color:var(--emerald);font-size:0.8rem;">âœ“ Cleared</span>'}
               <button class="btn btn-sm" style="background:#ef4444; color:white; border:none;" onclick="deleteVendorBill(${v.id}, ${b.id})" title="Delete Bill & Reverse Stock"><i data-lucide="trash"></i></button>
             </div>
           </td>
@@ -855,7 +855,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td style="color: var(--emerald); font-weight: bold;">${t.debit > 0 ? 'Rs. ' + t.debit.toLocaleString() : '-'}</td>
           <td style="color: var(--amber); font-weight: bold;">${t.credit > 0 ? 'Rs. ' + t.credit.toLocaleString() : '-'}</td>
           <td><strong>Rs. ${t.balance_after.toLocaleString()}</strong></td>
-          <td class="print-hide"><button class="btn-delete-row" onclick="deleteVendorTx(${v.id}, ${t.id}, '${t.type}', ${t.debit || t.credit})">🗑 Delete</button></td>
+          <td class="print-hide"><button class="btn-delete-row" onclick="deleteVendorTx(${v.id}, ${t.id}, '${t.type}', ${t.debit || t.credit})">ðŸ—‘ Delete</button></td>
         </tr>
       `).join('') : `<tr><td colspan="7" class="text-center text-muted">No transactions found</td></tr>`;
 
@@ -989,7 +989,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clientList.innerHTML = filtered.map(c => `
       <div class="list-item-card ${state.selectedClient && state.selectedClient.id === c.id ? 'active' : ''}" onclick="selectClient(${c.id})">
         <div class="name">${c.name}</div>
-        <div class="sub">${c.company || 'Customer'} • ${c.phone || 'No phone'}</div>
+        <div class="sub">${c.company || 'Customer'} â€¢ ${c.phone || 'No phone'}</div>
         <div class="balance positive">Rs. ${c.balance.toLocaleString()} Receivable</div>
       </div>
     `).join('');
@@ -1011,7 +1011,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const txs = res.transactions;
 
       document.getElementById('c-detail-name').innerText = c.name;
-      document.getElementById('c-detail-company').innerText = c.company ? `${c.company} • Phone: ${c.phone}` : (c.phone || '');
+      document.getElementById('c-detail-company').innerText = c.company ? `${c.company} â€¢ Phone: ${c.phone}` : (c.phone || '');
       
       const cBalanceLbl = document.getElementById('c-detail-balance-lbl');
       const cBalanceVal = document.getElementById('c-detail-balance');
@@ -1037,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td style="color: var(--amber); font-weight: bold;">${t.debit > 0 ? 'Rs. ' + t.debit.toLocaleString() : '-'}</td>
           <td style="color: var(--emerald); font-weight: bold;">${t.credit > 0 ? 'Rs. ' + t.credit.toLocaleString() : '-'}</td>
           <td><strong>Rs. ${t.balance_after.toLocaleString()}</strong></td>
-          <td><button class="btn-delete-row" onclick="deleteClientTx(${c.id}, ${t.id}, '${t.type}', ${t.debit || t.credit})">🗑 Delete</button></td>
+          <td><button class="btn-delete-row" onclick="deleteClientTx(${c.id}, ${t.id}, '${t.type}', ${t.debit || t.credit})">ðŸ—‘ Delete</button></td>
         </tr>
       `).join('') : `<tr><td colspan="8" class="text-center text-muted">No transactions found</td></tr>`;
 
@@ -1615,18 +1615,23 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               
               <div class="flex flex-col gap-1.5 col-span-1 sm:col-span-2 md:col-span-1">
-                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase">Paper Grade</label>
+                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase">Material Type</label>
                 <select class="order-paper-type bg-slate-900 border border-slate-600 rounded p-2 text-slate-100 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none w-full" required>
-                  <option value="Bleach Card">Bleach Card</option>
-                  <option value="Art Paper">Art Paper</option>
-                  <option value="Sticker Paper">Sticker Paper</option>
-                  <option value="Duplex Board">Duplex Board</option>
-                  <option value="Reel">Reel</option>
+                  <optgroup label="Paper & Boards">
+                    <option value="Bleach Card">Bleach Card</option>
+                    <option value="Art Paper">Art Paper</option>
+                    <option value="Sticker Paper">Sticker Paper</option>
+                    <option value="Duplex Board">Duplex Board</option>
+                    <option value="Reel">Reel</option>
+                  </optgroup>
+                  <optgroup label="Plastics & Films">
+                    <option value="PVC Window Film">PVC Window Film</option>
+                  </optgroup>
                 </select>
               </div>
               
               <div class="flex flex-col gap-1.5">
-                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase">GSM</label>
+                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase lbl-order-gsm">GSM / MICRONS</label>
                 <input type="number" class="order-gsm bg-slate-900 border border-slate-600 rounded p-2 text-slate-100 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" value="300" required>
               </div>
               
@@ -1641,12 +1646,12 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
               
               <div class="flex flex-col gap-1.5">
-                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase">Packets</label>
+                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase lbl-order-qty">PACKETS / QTY</label>
                 <input type="number" class="order-pkts bg-slate-900 border border-slate-600 rounded p-2 text-slate-100 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" value="20" required>
               </div>
               
               <div class="flex flex-col gap-1.5">
-                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase">Est. Rate/KG</label>
+                <label class="text-xs text-slate-300 font-semibold tracking-wide uppercase">Rate</label>
                 <input type="number" class="order-rate-kg bg-slate-900 border border-slate-600 rounded p-2 text-slate-100 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" value="145" step="1" required>
               </div>
 
@@ -1663,6 +1668,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
     }
+
+    const orderItemsContainer = document.getElementById('order-items-container');
+    if (orderItemsContainer) {
+      orderItemsContainer.addEventListener('change', (e) => {
+        if (e.target.classList.contains('order-paper-type')) {
+          const row = e.target.closest('.order-item-row');
+          if (!row) return;
+          const isPVC = e.target.value === 'PVC Window Film';
+          const lblGsm = row.querySelector('.lbl-order-gsm');
+          const lblQty = row.querySelector('.lbl-order-qty');
+          
+          if (lblGsm) lblGsm.innerText = isPVC ? 'MICRONS' : 'GSM / MICRONS';
+          if (lblQty) lblQty.innerText = isPVC ? 'SHEETS' : 'PACKETS / QTY';
+        }
+      });
+    }
+
 
     document.getElementById('form-order').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1986,7 +2008,7 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModal('modal-bill-pay');
         await loadAllData();
         renderVendors();
-        showToast('Payment Recorded', `Payment of Rs. ${parseFloat(payload.amount).toLocaleString()} recorded against bill. ${res.bill.status === 'paid' ? 'Bill is now fully cleared! ✓' : ''}`, 'success');
+        showToast('Payment Recorded', `Payment of Rs. ${parseFloat(payload.amount).toLocaleString()} recorded against bill. ${res.bill.status === 'paid' ? 'Bill is now fully cleared! âœ“' : ''}`, 'success');
       } catch (err) {
         console.error("Error paying bill:", err);
         showToast('Error', 'Failed to record payment.', 'error');

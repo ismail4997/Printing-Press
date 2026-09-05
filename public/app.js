@@ -129,15 +129,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const rateKg = parseFloat(document.getElementById('receive-rate-kg')?.value) || 0;
       const pkts = parseFloat(document.getElementById('receive-pkts')?.value) || 0;
 
-      const weightPerPkt = (L * W * gsm) / DIVISOR;
-      const pricePerPkt = weightPerPkt * rateKg;
-      const totalAmount = pricePerPkt * pkts;
+              const isWindow = document.getElementById('receive-order-summary')?.innerText.includes('PVC Window Film');
+        const weightPerPkt = isWindow ? 0 : (L * W * gsm) / DIVISOR;
+        const pricePerPkt = isWindow ? (L * W * rateKg) : weightPerPkt * rateKg;
+        const totalAmount = pricePerPkt * pkts;
+
+        const formulaEl = document.querySelector('#receive-price-breakdown .pb-formula');
+        if (formulaEl) {
+          formulaEl.innerText = isWindow 
+            ? '( L × W × Rate/Sq.In × Sheets )' 
+            : '( L × W × GSM ) ÷ 15,500 × Rate/KG × Pkts';
+        }
 
       const weightEl = document.getElementById('calc-weight-pkt');
       const priceEl = document.getElementById('calc-price-pkt');
       const totalEl = document.getElementById('calc-total-amount');
       
-      if (weightEl) weightEl.textContent = weightPerPkt.toFixed(2) + ' KG';
+              if (weightEl) {
+          weightEl.textContent = weightPerPkt.toFixed(2) + ' KG';
+          weightEl.parentElement.style.display = isWindow ? 'none' : 'flex';
+        }
       if (priceEl) priceEl.textContent = 'Rs. ' + Math.round(pricePerPkt).toLocaleString();
       if (totalEl) totalEl.textContent = 'Rs. ' + Math.round(totalAmount).toLocaleString();
     }
@@ -2265,6 +2276,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start application
   init();
 });
+
+
+
 
 
 

@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dashboard-stock-alerts').innerHTML = lowStockItems.length ?
       lowStockItems.map(i => `
         <div class="mini-job-item" style="border-left-color: var(--amber);">
-          <strong>${i.paper_type} ${i.gsm}gsm</strong> (${i.size_w}x${i.size_h}")<br>
+          <strong>${i.paper_type} ${i.gsm}${i.paper_type === 'PVC Window Film' ? 'microns' : 'gsm'}</strong> (${i.size_w}x${i.size_h}")<br>
           Current Stock: <span style="color: var(--amber); font-weight: bold;">${i.pkt_qty} Pkts (${i.sheet_qty} sheets)</span>
         </div>
       `).join('') :
@@ -570,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td><strong>${order.order_no}</strong></td>
           <td>${order.date}</td>
           <td>${order.vendor_name}</td>
-          <td>${order.paper_type} ${order.gsm}gsm<br><small>${order.size_w}x${order.size_h}"</small></td>
+          <td>${order.paper_type} ${order.gsm}${order.paper_type === 'PVC Window Film' ? 'microns' : 'gsm'}<br><small>${order.size_w}x${order.size_h}"</small></td>
           <td>${order.ordered_pkts} ${order.paper_type === 'PVC Window Film' ? 'Sheets' : 'Pkts'}</td>
           <td>Rs. ${order.rate_per_kg}${order.paper_type === 'PVC Window Film' ? '' : '/KG'}</td>
           <td>${isReceived ? '<span class="badge badge-success">RECEIVED</span>' : '<span class="badge badge-warning">ORDERED</span>'}</td>
@@ -661,7 +661,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return `
         <tr>
           <td><strong>${item.paper_type}</strong></td>
-          <td>${item.gsm} GSM</td>
+          <td>${item.gsm} ${item.paper_type === 'PVC Window Film' ? 'MICRONS' : 'GSM'}</td>
           <td>${item.size_w}" x ${item.size_h}"</td>
           <td><strong style="font-size: 1.1rem; color: ${isLow ? 'var(--amber)' : 'var(--cyan)'};">${item.pkt_qty} ${item.paper_type === 'PVC Window Film' ? 'Sheets' : 'Pkts'}</strong></td>
           <td>${item.paper_type === 'PVC Window Film' ? '-' : item.sheet_qty.toLocaleString() + ' sheets'}</td>
@@ -690,7 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cut-source-id').value = item.id;
     document.getElementById('cut-source-w').value = item.size_w;
     document.getElementById('cut-source-h').value = item.size_h;
-    document.getElementById('cut-source-info').innerText = `Master: ${item.paper_type} ${item.gsm}GSM (${item.size_w}" x ${item.size_h}") - ${item.pkt_qty} pkts available`;
+    document.getElementById('cut-source-info').innerText = `Master: ${item.paper_type} ${item.gsm}${item.paper_type === 'PVC Window Film' ? 'MICRONS' : 'GSM'} (${item.size_w}" x ${item.size_h}") - ${item.pkt_qty} pkts available`;
     document.getElementById('cut-pkts').max = item.pkt_qty;
     document.getElementById('cut-pkts').value = '';
     document.getElementById('cut-target-pkts').value = '';
@@ -710,7 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('issue-stock-id').value = item.id;
-    document.getElementById('issue-stock-info').innerText = `Issuing: ${item.paper_type} ${item.gsm}GSM (${item.size_w}x${item.size_h}") - ${item.pkt_qty} pkts available`;
+    document.getElementById('issue-stock-info').innerText = `Issuing: ${item.paper_type} ${item.gsm}${item.paper_type === 'PVC Window Film' ? 'MICRONS' : 'GSM'} (${item.size_w}x${item.size_h}") - ${item.pkt_qty} pkts available`;
     document.getElementById('issue-pkts-qty').max = item.pkt_qty;
     document.getElementById('issue-pkts-qty').value = '';
     document.getElementById('issue-job-title').value = '';

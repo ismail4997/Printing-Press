@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formulaEl = document.querySelector('#receive-price-breakdown .pb-formula');
         if (formulaEl) {
           formulaEl.innerText = isWindow 
-            ? '( L × W × Rate/Sq.In × Sheets )' 
+            ? '( L × W × Rate × Sheets )' 
             : '( L × W × GSM ) ÷ 15,500 × Rate/KG × Pkts';
         }
 
@@ -572,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${order.vendor_name}</td>
           <td>${order.paper_type} ${order.gsm}gsm<br><small>${order.size_w}x${order.size_h}"</small></td>
           <td>${order.ordered_pkts} ${order.paper_type === 'PVC Window Film' ? 'Sheets' : 'Pkts'}</td>
-          <td>Rs. ${order.rate_per_kg}/${order.paper_type === 'PVC Window Film' ? 'Sq.In' : 'KG'}</td>
+          <td>Rs. ${order.rate_per_kg}${order.paper_type === 'PVC Window Film' ? '' : '/KG'}</td>
           <td>${isReceived ? '<span class="badge badge-success">RECEIVED</span>' : '<span class="badge badge-warning">ORDERED</span>'}</td>
           <td>
             <div style="display:flex; gap:0.25rem;">
@@ -2276,6 +2276,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start application
   init();
 });
+
+
 
 
 

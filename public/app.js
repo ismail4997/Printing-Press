@@ -592,7 +592,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!order) return;
 
     document.getElementById('receive-order-id').value = order.id;
-    document.getElementById('receive-order-summary').innerText = `Receiving Order ${order.order_no}: ${order.paper_type} ${order.gsm}gsm`;
+    const isWindow = (order.paper_type === 'PVC Window Film');
+    const unit = isWindow ? 'microns' : 'gsm';
+    document.getElementById('receive-order-summary').innerText = `Receiving Order ${order.order_no}: ${order.paper_type} ${order.gsm}${unit}`;
+
+    const lblPkts = document.getElementById('lbl-receive-pkts');
+    if (lblPkts) lblPkts.innerText = isWindow ? 'Actual Sheets Received' : 'Actual Packets Received';
+
+    const lblPrice = document.getElementById('lbl-receive-price-pkt');
+    if (lblPrice) lblPrice.innerText = isWindow ? 'PRICE PER SHEET' : 'PRICE PER PKT';
+
     
     document.getElementById('receive-pkts').value = order.ordered_pkts;
     document.getElementById('receive-rate-kg').value = order.rate_per_kg;
@@ -2276,6 +2285,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start application
   init();
 });
+
+
+
 
 
 

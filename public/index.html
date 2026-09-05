@@ -1008,7 +1008,7 @@
         </div>
         
         <div class="form-group">
-          <label>Actual Packets Received</label>
+          <label id="lbl-receive-pkts">Actual Packets Received</label>
           <input type="number" id="receive-pkts" required class="stock-calc-input">
         </div>
         <div class="form-group">
@@ -1034,11 +1034,11 @@
             <div class="pb-formula">( L × W × GSM ) ÷ 15,500 × Rate/KG × Pkts</div>
             <div class="pb-grid">
               <div class="pb-item">
-                <span class="pb-label">Weight per Pkt</span>
+                <span class="pb-label" id="lbl-receive-weight-pkt">WEIGHT PER PKT</span>
                 <span class="pb-value" id="calc-weight-pkt">0.00 KG</span>
               </div>
               <div class="pb-item">
-                <span class="pb-label">Price per Pkt</span>
+                <span class="pb-label" id="lbl-receive-price-pkt">PRICE PER PKT</span>
                 <span class="pb-value" id="calc-price-pkt">Rs. 0</span>
               </div>
               <div class="pb-item pb-total">
@@ -1433,6 +1433,7 @@
   <script src="app.js?v=3"></script>
 </body>
 </html>
+
 
 
 

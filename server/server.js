@@ -14,7 +14,16 @@ const PORT = process.env.PORT || 3000;
 // ── AUTH ──────────────────────────────────────────────────────────
 const USERS_FILE = path.join(__dirname, 'users.json');
 let USERS = [];
-try { USERS = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8')); } catch { USERS = []; }
+if (process.env.USERS_CONFIG) {
+  try {
+    USERS = JSON.parse(process.env.USERS_CONFIG);
+  } catch (e) {
+    console.error("Failed to parse USERS_CONFIG environment variable:", e);
+  }
+}
+if (!USERS || USERS.length === 0) {
+  try { USERS = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8')); } catch { USERS = []; }
+}
 
 const SESSIONS_FILE = path.join(__dirname, 'sessions.json');
 let _loadedSessions = [];

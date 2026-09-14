@@ -95,6 +95,9 @@ document.addEventListener('DOMContentLoaded', () => {
     clients: [],
     jobs: [],
     client_products: [],
+    employees: [],
+    attendance: [],
+    expenses: [],
     selectedVendor: null,
     selectedClient: null,
     currentImposition: null
@@ -191,6 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tabName === 'clients') renderClients();
     if (tabName === 'production') renderProduction();
     if (tabName === 'costing') renderCosting();
+      if (tabName === 'hr') { const isHR = currentUser && ['CEO', 'CTO'].includes(currentUser.role); if(isHR) { renderEmployees(); } if(window.renderAttendanceChart) window.renderAttendanceChart(); }
+      if (tabName === 'expenses') renderExpenses();
 
     lucide.createIcons();
   }
@@ -218,14 +223,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // -------------------------------------------------------------
   async function loadAllData() {
     try {
-      const [dashRes, invRes, venRes, cliRes, jobRes, poRes, clientProductsRes] = await Promise.all([
+      const [dashRes, invRes, venRes, cliRes, jobRes, poRes, clientProductsRes, empRes, attRes, expRes] = await Promise.all([
         fetch('/api/dashboard').then(r => r.json()),
         fetch('/api/inventory').then(r => r.json()),
         fetch('/api/vendors').then(r => r.json()),
         fetch('/api/clients').then(r => r.json()),
         fetch('/api/jobs').then(r => r.json()),
         fetch('/api/purchase-orders').then(r => r.json()),
-        fetch('/api/client-products').then(r => r.json())
+        fetch('/api/client-products').then(r => r.json()),
+          fetch('/api/employees').then(r => r.json()),
+          fetch('/api/attendance').then(r => r.json()),
+          fetch('/api/expenses').then(r => r.json())
       ]);
 
       state.dashboard = dashRes;
@@ -235,6 +243,9 @@ document.addEventListener('DOMContentLoaded', () => {
       state.jobs = jobRes || [];
       state.purchaseOrders = poRes || [];
       state.client_products = clientProductsRes || [];
+      state.employees = empRes || [];
+      state.attendance = attRes || [];
+      state.expenses = expRes || [];
 
       if (state.vendors.length > 0 && !state.selectedVendor) {
         state.selectedVendor = state.vendors[0];
@@ -250,6 +261,9 @@ document.addEventListener('DOMContentLoaded', () => {
       renderClients();
       renderProduction();
       renderCosting();
+      renderEmployees();
+      renderExpenses();
+      if(window.renderAttendanceChart) window.renderAttendanceChart();
       populateDropdowns();
 
     } catch (err) {
@@ -2306,9 +2320,617 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Start application
   init();
+
+  
+
+  // =============================================================
+  // HR & PAYROLL LOGIC
+  // =============================================================
+
+  
+  window.renderEmployees = function() {
+    const tbody = document.getElementById('table-employees');
+    if (!tbody) return;
+    
+    const employees = state.employees || [];
+    const todayStr = new Date().toISOString().split('T')[0];
+    const currentMonthStr = new Date().toISOString().substring(0, 7);
+
+    // Calculate Summary Metrics
+    const totalStaff = employees.length;
+    const activeStaff = employees.filter(e => e.status === 'active').length;
+    
+    // Present Today
+    const todayAtt = (state.attendance || []).filter(a => a.date === todayStr);
+    const presentToday = todayAtt.filter(a => a.status === 'present' || a.status === 'half-day').length;
+
+    // Monthly Payroll Total
+    const totalPayroll = employees.reduce((sum, e) => sum + (parseFloat(e.base_salary) || 0), 0);
+
+    // Monthly Overtime Total
+    const monthAtt = (state.attendance || []).filter(a => a.date && a.date.startsWith(currentMonthStr));
+    const totalOvertime = monthAtt.reduce((sum, a) => sum + (parseFloat(a.overtime_hours) || 0), 0);
+
+    // Update Metric Cards if they exist
+    const staffEl = document.getElementById('hr-total-staff');
+    if (staffEl) staffEl.textContent = totalStaff;
+
+    const presentEl = document.getElementById('hr-present-today');
+    if (presentEl) presentEl.textContent = `${presentToday} / ${activeStaff}`;
+
+    const payrollEl = document.getElementById('hr-monthly-payroll');
+    if (payrollEl) payrollEl.textContent = `Rs. ${totalPayroll.toLocaleString()}`;
+
+    const otEl = document.getElementById('hr-month-overtime');
+    if (otEl) otEl.textContent = `${totalOvertime.toFixed(1)} Hrs`;
+
+    if (employees.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--slate-400); padding:2rem;">No employees registered yet. Click "New Employee" to add staff.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = employees.map(e => {
+      const initial = (e.name || 'E').trim().charAt(0).toUpperCase();
+      return `
+        <tr>
+          <td>
+            <div class="emp-name-cell">
+              <div class="avatar-circle">${initial}</div>
+              <div>
+                <strong>${e.name}</strong>
+              </div>
+            </div>
+          </td>
+          <td><span style="font-weight:500; color:var(--text-main);">${e.role}</span></td>
+          <td>${e.phone || '<span style="color:var(--text-muted);">-</span>'}</td>
+          <td><span class="badge" style="background:rgba(255,255,255,0.05); text-transform:capitalize; border:1px solid rgba(255,255,255,0.1);">${e.salary_type || 'monthly'}</span></td>
+          <td><strong style="color:var(--cyan);">Rs. ${(e.base_salary || 0).toLocaleString()}</strong></td>
+          <td>
+            <span class="badge badge-${e.status === 'active' ? 'success' : 'danger'}">
+              ${(e.status || 'active').toUpperCase()}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size:0.8rem;" onclick="editEmployee(${e.id})">
+              <i data-lucide="edit-3"></i> Edit
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+    
+    lucide.createIcons({ nodes: Array.from(tbody.querySelectorAll('.lucide')) });
+  };
+
+
+  window.openAddEmployeeModal = function() {
+    document.getElementById('modal-employee-title').innerHTML = '<i data-lucide="user-plus"></i> Add Employee';
+    document.getElementById('form-employee').reset();
+    document.getElementById('emp-id').value = '';
+    openModal('modal-employee');
+  };
+
+  window.editEmployee = function(id) {
+    const emp = state.employees.find(e => e.id === id);
+    if (!emp) return;
+    document.getElementById('modal-employee-title').innerHTML = '<i data-lucide="user-plus"></i> Edit Employee';
+    document.getElementById('emp-id').value = emp.id;
+    document.getElementById('emp-name').value = emp.name;
+    document.getElementById('emp-role').value = emp.role;
+    document.getElementById('emp-phone').value = emp.phone;
+    document.getElementById('emp-salary-type').value = emp.salary_type;
+    document.getElementById('emp-base-salary').value = emp.base_salary;
+    openModal('modal-employee');
+  };
+
+  const formEmp = document.getElementById('form-employee');
+  if (formEmp) {
+    formEmp.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('emp-id').value;
+      const payload = {
+        name: document.getElementById('emp-name').value,
+        role: document.getElementById('emp-role').value,
+        phone: document.getElementById('emp-phone').value,
+        salary_type: document.getElementById('emp-salary-type').value,
+        base_salary: document.getElementById('emp-base-salary').value
+      };
+      
+      try {
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? '/api/employees/' + id : '/api/employees';
+        const res = await fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          showToast('Success', id ? 'Employee updated' : 'Employee added', 'success');
+          closeModal('modal-employee');
+          await loadAllData();
+        } else {
+          showToast('Error', 'Failed to save employee', 'error');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  }
+
+  // Attendance Logic
+  window.openAttendanceModal = function() {
+    const dateInput = document.getElementById('att-date');
+    if (!dateInput.value) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+    }
+    renderAttendanceRoster();
+    openModal('modal-attendance');
+  };
+
+  window.renderAttendanceRoster = function() {
+    const date = document.getElementById('att-date').value;
+    const tbody = document.getElementById('attendance-roster');
+    if (!tbody || !state.employees || state.employees.length === 0) return;
+
+    const todaysAttendance = (state.attendance || []).filter(a => a.date === date);
+
+    tbody.innerHTML = state.employees.filter(e => e.status === 'active').map(emp => {
+      const att = todaysAttendance.find(a => a.employee_id === emp.id) || {};
+      const status = att.status || 'present';
+      
+      const hasRecord = Object.keys(att).length > 0;
+      const checkIn = hasRecord ? (att.check_in || '') : '10:00';
+      const checkOut = hasRecord ? (att.check_out || '') : '18:00';
+
+      return `
+        <tr data-emp-id="${emp.id}">
+          <td><strong>${emp.name}</strong><br><small class="text-slate-400">${emp.role}</small></td>
+          <td>
+            <select class="input-field att-status" style="padding: 0.2rem; min-width: 100px;">
+              <option value="present" ${status === 'present' ? 'selected' : ''}>Present</option>
+              <option value="absent" ${status === 'absent' ? 'selected' : ''}>Absent</option>
+              <option value="half-day" ${status === 'half-day' ? 'selected' : ''}>Half Day</option>
+              <option value="leave" ${status === 'leave' ? 'selected' : ''}>Leave</option>
+            </select>
+          </td>
+          <td><input type="time" class="input-field att-in" value="${checkIn}" style="padding: 0.2rem;"></td>
+          <td><input type="time" class="input-field att-out" value="${checkOut}" style="padding: 0.2rem;"></td>
+          <td><input type="number" class="input-field att-ot" value="${att.overtime_hours || 0}" min="0" step="0.5" style="padding: 0.2rem; width: 60px;"></td>
+        </tr>
+      `;
+    }).join('');
+  };
+
+  const attDate = document.getElementById('att-date');
+  if (attDate) attDate.addEventListener('change', renderAttendanceRoster);
+
+  const formAtt = document.getElementById('form-attendance');
+  if (formAtt) {
+    formAtt.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const date = document.getElementById('att-date').value;
+      const records = [];
+      document.querySelectorAll('#attendance-roster tr').forEach(row => {
+        records.push({
+          employee_id: parseInt(row.getAttribute('data-emp-id')),
+          status: row.querySelector('.att-status').value,
+          check_in: row.querySelector('.att-in').value,
+          check_out: row.querySelector('.att-out').value,
+          overtime_hours: row.querySelector('.att-ot').value
+        });
+      });
+
+      try {
+        const res = await fetch('/api/attendance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date, records })
+        });
+        if (res.ok) {
+          showToast('Success', 'Attendance saved', 'success');
+          closeModal('modal-attendance');
+          await loadAllData();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  }
+
+  // =============================================================
+  // EXPENSES LOGIC
+  // =============================================================
+
+  window.renderExpenses = function() {
+    const tbody = document.getElementById('table-expenses');
+    if (!tbody) return;
+    
+    if (!state.expenses || state.expenses.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--slate-400);">No expenses found.</td></tr>';
+      return;
+    }
+
+    const sorted = [...state.expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    tbody.innerHTML = sorted.map(exp => `
+      <tr>
+        <td>${exp.date}</td>
+        <td><span class="badge badge-warning">${exp.category}</span></td>
+        <td>${exp.description}</td>
+        <td><strong style="color: var(--amber);">Rs. ${parseFloat(exp.amount).toLocaleString()}</strong></td>
+        <td>
+          <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; color: var(--red);" onclick="deleteExpense(${exp.id})">
+            <i data-lucide="trash-2"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+    
+    lucide.createIcons({ nodes: Array.from(tbody.querySelectorAll('.lucide')) });
+  };
+
+  window.openAddExpenseModal = function() {
+    document.getElementById('form-expense').reset();
+    document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+    openModal('modal-expense');
+  };
+
+  const formExp = document.getElementById('form-expense');
+  if (formExp) {
+    formExp.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        date: document.getElementById('exp-date').value,
+        category: document.getElementById('exp-category').value,
+        description: document.getElementById('exp-desc').value,
+        amount: document.getElementById('exp-amount').value
+      };
+      
+      try {
+        const res = await fetch('/api/expenses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          showToast('Success', 'Expense recorded', 'success');
+          closeModal('modal-expense');
+          await loadAllData();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  }
+
+  window.deleteExpense = async function(id) {
+    const confirm = await showConfirm({
+      title: 'Delete Expense?',
+      message: 'Are you sure you want to delete this expense record?',
+      confirmText: 'Delete',
+      confirmClass: 'btn-danger'
+    });
+    if (!confirm) return;
+
+    try {
+      const res = await fetch('/api/expenses/' + id, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Deleted', 'Expense record deleted', 'success');
+        await loadAllData();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+
+  // =============================================================
+  // ATTENDANCE CHART LOGIC
+  // =============================================================
+  
+  window.renderAttendanceChart = function() {
+    const head = document.getElementById('attendance-chart-head');
+    const body = document.getElementById('attendance-chart-body');
+    if (!head || !body) return;
+
+    const monthPicker = document.getElementById('attendance-month-picker');
+    if (!monthPicker.value) {
+      const now = new Date();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      monthPicker.value = `${now.getFullYear()}-${mm}`;
+    }
+
+    const selectedMonth = monthPicker.value; // "YYYY-MM"
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+    // Row 1: Numbers & Summary Titles
+    let row1 = `<tr><th class="sticky-col" rowspan="2" style="vertical-align:bottom; padding-bottom:0.6rem; min-width:180px; text-align:left; padding-left:1rem;">Employee</th>`;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateObj = new Date(year, month - 1, d);
+      const isSunday = dateObj.getDay() === 0;
+      const classAttr = isSunday ? 'att-weekend-header' : '';
+      row1 += `<th class="${classAttr}" style="text-align: center; width: 34px; padding: 0.3rem 0.1rem; font-size:0.8rem;">${d}</th>`;
+    }
+    row1 += `<th style="text-align: center; min-width: 40px; color:#34d399; background:rgba(16,185,129,0.08);" title="Total Present">P</th>`;
+    row1 += `<th style="text-align: center; min-width: 40px; color:#fb7185; background:rgba(244,63,94,0.08);" title="Total Absent">A</th>`;
+    row1 += `<th style="text-align: center; min-width: 40px; color:#fbbf24; background:rgba(245,158,11,0.08);" title="Total Half Days">H</th>`;
+    row1 += `<th style="text-align: center; min-width: 50px; color:#38bdf8; background:rgba(56,189,248,0.08);" title="Total Overtime Hours">OT</th>`;
+    row1 += `</tr>`;
+
+    // Row 2: Day names (Su, Mo, Tu, ...)
+    let row2 = `<tr>`;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateObj = new Date(year, month - 1, d);
+      const dayIdx = dateObj.getDay();
+      const isSunday = dayIdx === 0;
+      const classAttr = isSunday ? 'att-weekend-header' : '';
+      row2 += `<th class="${classAttr}" style="text-align: center; font-size: 0.68rem; font-weight: 500; padding: 0.2rem 0.1rem; color:var(--text-muted);">${dayNames[dayIdx]}</th>`;
+    }
+    row2 += `<th style="background:rgba(16,185,129,0.08);"></th><th style="background:rgba(244,63,94,0.08);"></th><th style="background:rgba(245,158,11,0.08);"></th><th style="background:rgba(56,189,248,0.08);"></th>`;
+    row2 += `</tr>`;
+
+    head.innerHTML = row1 + row2;
+
+    const employees = state.employees || [];
+    if (employees.length === 0) {
+      body.innerHTML = `<tr><td colspan="${daysInMonth + 5}" style="text-align: center; color:var(--text-muted); padding:2rem;">No employee attendance records to display.</td></tr>`;
+      return;
+    }
+
+    const attRecords = state.attendance || [];
+
+    let bodyHtml = '';
+    employees.forEach(emp => {
+      const initial = (emp.name || 'E').trim().charAt(0).toUpperCase();
+      let row = `<tr>
+        <td class="sticky-col" style="padding-left:1rem;">
+          <div class="emp-name-cell">
+            <div class="avatar-circle" style="width:26px; height:26px; font-size:0.75rem;">${initial}</div>
+            <strong style="font-size:0.85rem; white-space:nowrap;">${emp.name}</strong>
+          </div>
+        </td>`;
+      
+      let pCount = 0;
+      let aCount = 0;
+      let hCount = 0;
+      let totalOt = 0;
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateObj = new Date(year, month - 1, d);
+        const isSunday = dateObj.getDay() === 0;
+        const dateStr = `${selectedMonth}-${String(d).padStart(2, '0')}`;
+        const record = attRecords.find(a => a.employee_id === emp.id && a.date === dateStr);
+        
+        let cellContent = `<span class="att-empty">�</span>`;
+        const colClass = isSunday ? 'att-weekend-col' : '';
+        
+        if (record) {
+          if (record.overtime_hours) {
+            totalOt += parseFloat(record.overtime_hours) || 0;
+          }
+          if (record.status === 'present') {
+            pCount++;
+            cellContent = `<span class="att-badge att-p">P</span>`;
+          } else if (record.status === 'absent') {
+            aCount++;
+            cellContent = `<span class="att-badge att-a">A</span>`;
+          } else if (record.status === 'half-day') {
+            hCount++;
+            cellContent = `<span class="att-badge att-h">H</span>`;
+          } else if (record.status === 'leave') {
+            cellContent = `<span class="att-badge att-l">L</span>`;
+          }
+        }
+        
+        row += `<td class="${colClass}" title="${dateStr} - ${emp.name}" style="text-align: center; padding: 0.3rem 0.1rem; border-left: 1px solid rgba(255,255,255,0.03);">${cellContent}</td>`;
+      }
+      
+      // Summary Cells
+      row += `<td style="text-align: center; font-weight:700; color:#34d399; background:rgba(16,185,129,0.05); font-size:0.85rem;">${pCount}</td>`;
+      row += `<td style="text-align: center; font-weight:700; color:#fb7185; background:rgba(244,63,94,0.05); font-size:0.85rem;">${aCount}</td>`;
+      row += `<td style="text-align: center; font-weight:700; color:#fbbf24; background:rgba(245,158,11,0.05); font-size:0.85rem;">${hCount}</td>`;
+      row += `<td style="text-align: center; font-weight:700; color:#38bdf8; background:rgba(56,189,248,0.05); font-size:0.85rem;">${totalOt > 0 ? totalOt.toFixed(1) + 'h' : '-'}</td>`;
+
+      row += '</tr>';
+      bodyHtml += row;
+    });
+
+    body.innerHTML = bodyHtml;
+  };
+
+
+  const monthPickerEl = document.getElementById('attendance-month-picker');
+  if (monthPickerEl) {
+    monthPickerEl.addEventListener('change', window.renderAttendanceChart);
+  }
+
+
+  window.switchHrSubTab = function(subtab) {
+    const staffTab = document.getElementById('hr-subtab-staff');
+    const attTab = document.getElementById('hr-subtab-attendance');
+    const staffBtn = document.getElementById('btn-subtab-staff');
+    const attBtn = document.getElementById('btn-subtab-attendance');
+    const isHR = currentUser && ['CEO', 'CTO'].includes(currentUser.role);
+
+    if (subtab === 'staff') {
+      // Only CEO/CTO can access staff directory
+      if (!isHR) { switchHrSubTab('attendance'); return; }
+      if (staffTab) staffTab.style.display = 'block';
+      if (attTab) attTab.style.display = 'none';
+      if (staffBtn) staffBtn.classList.add('active');
+      if (attBtn) attBtn.classList.remove('active');
+      renderEmployees();
+    } else if (subtab === 'attendance') {
+      if (staffTab) staffTab.style.display = 'none';
+      if (attTab) attTab.style.display = 'block';
+      if (staffBtn) staffBtn.classList.remove('active');
+      if (attBtn) attBtn.classList.add('active');
+      if (window.renderAttendanceChart) window.renderAttendanceChart();
+    }
+  };
+
+
+  // =============================================================
+  // AUTH / LOGIN SYSTEM
+  // =============================================================
+
+  let currentUser = null; // { token, role, name }
+
+  async function checkAuth() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) { showLoginScreen(); return false; }
+    try {
+      const res = await fetch('/api/me', { headers: { 'x-auth-token': token } });
+      if (!res.ok) { localStorage.removeItem('auth_token'); showLoginScreen(); return false; }
+      const user = await res.json();
+      currentUser = { token, ...user };
+      hideLoginScreen();
+      applyRoleUI();
+      return true;
+    } catch {
+      showLoginScreen(); return false;
+    }
+  }
+
+  function showLoginScreen() {
+    const ls = document.getElementById('login-screen');
+    if (ls) ls.style.display = 'flex';
+    const app = document.getElementById('app') || document.querySelector('.app-container');
+    if (app) app.style.display = 'none';
+    
+    // Reset login button and inputs
+    const btn = document.getElementById('login-btn');
+    if (btn) {
+      btn.textContent = 'Sign In';
+      btn.disabled = false;
+    }
+    const errEl = document.getElementById('login-error');
+    if (errEl) errEl.style.display = 'none';
+    const pass = document.getElementById('login-password');
+    if (pass) pass.value = '';
+  }
+
+  function hideLoginScreen() {
+    const ls = document.getElementById('login-screen');
+    if (ls) ls.style.display = 'none';
+    const app = document.getElementById('app') || document.querySelector('.app-container');
+    if (app) app.style.display = '';
+    
+    const btn = document.getElementById('login-btn');
+    if (btn) {
+      btn.textContent = 'Sign In';
+      btn.disabled = false;
+    }
+  }
+
+  function applyRoleUI() {
+    if (!currentUser) return;
+    const isHR = ['CEO', 'CTO'].includes(currentUser.role);
+
+    // HR & Payroll tab is visible to ALL logged-in users
+    const hrNavBtn = document.querySelector('.nav-btn[data-tab="hr"]');
+    if (hrNavBtn) hrNavBtn.style.display = '';
+
+    // Show user badge in header
+    const badge = document.getElementById('user-role-badge');
+    if (badge) { badge.textContent = currentUser.name + ' • ' + currentUser.role; badge.style.display = 'inline-flex'; }
+
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+    if (window.lucide) { window.lucide.createIcons(); }
+
+    // Sub-tab logic
+    const staffSubBtn = document.getElementById('btn-subtab-staff');
+    const staffSubTab = document.getElementById('hr-subtab-staff');
+    const attSubBtn = document.getElementById('btn-subtab-attendance');
+    const attSubTab = document.getElementById('hr-subtab-attendance');
+
+    if (!isHR) {
+      // For operators: hide Staff Directory completely
+      if (staffSubBtn) staffSubBtn.style.display = 'none';
+      if (staffSubTab) staffSubTab.style.display = 'none';
+      if (staffSubBtn) staffSubBtn.classList.remove('active');
+      if (attSubBtn) { attSubBtn.classList.add('active'); attSubBtn.style.display = ''; }
+      if (attSubTab) attSubTab.style.display = 'block';
+      document.body.setAttribute('data-user-role', 'operator');
+    } else {
+      document.body.setAttribute('data-user-role', currentUser.role);
+    }
+  }
+
+  window.handleLogin = async function(e) {
+    e.preventDefault();
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errEl = document.getElementById('login-error');
+    const btn = document.getElementById('login-btn');
+
+    errEl.style.display = 'none';
+    btn.textContent = 'Signing in...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errEl.textContent = data.error || 'Invalid credentials';
+        errEl.style.display = 'block';
+        btn.textContent = 'Sign In';
+        btn.disabled = false;
+        return;
+      }
+      localStorage.setItem('auth_token', data.token);
+      currentUser = { token: data.token, role: data.role, name: data.name };
+      hideLoginScreen();
+      applyRoleUI();
+      await loadAllData();
+    } catch (err) {
+      errEl.textContent = 'Server error. Please try again.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Sign In';
+      btn.disabled = false;
+    }
+  };
+
+  window.handleLogout = async function() {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      try { await fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } }); } catch {}
+    }
+    localStorage.removeItem('auth_token');
+    currentUser = null;
+    // Reset badge/button
+    const badge = document.getElementById('user-role-badge');
+    if (badge) badge.style.display = 'none';
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) logoutBtn.style.display = 'none';
+    showLoginScreen();
+  };
+
+  // Patch fetch to always include auth token
+  const _origFetch = window.fetch;
+  window.fetch = function(url, opts = {}) {
+    const token = localStorage.getItem('auth_token');
+    if (token && typeof url === 'string' && url.startsWith('/api')) {
+      opts.headers = { ...(opts.headers || {}), 'x-auth-token': token };
+    }
+    return _origFetch(url, opts);
+  };
+
+  // Start application with authentication check
+  checkAuth().then(authed => {
+    init();
+  });
+
 });
-
-
 
 
 

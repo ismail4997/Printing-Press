@@ -1,5 +1,15 @@
 {
-  "vendors": [],
+  "vendors": [
+    {
+      "id": 1,
+      "name": "supper paper mart",
+      "category": "paper_supplier",
+      "phone": "03004203903",
+      "balance": 0,
+      "initial_balance": 0,
+      "created_at": "2026-09-07T08:12:40.605Z"
+    }
+  ],
   "clients": [],
   "inventory": [],
   "vendor_transactions": [],
@@ -8,5 +18,247 @@
   "client_transactions": [],
   "jobs": [],
   "machines": [],
-  "client_products": []
+  "client_products": [],
+  "employees": [
+    {
+      "id": 1,
+      "name": "Ashfaq",
+      "role": "Die Setter",
+      "phone": "03014555346",
+      "salary_type": "monthly",
+      "base_salary": 55000,
+      "status": "active",
+      "joined_date": "2026-09-10",
+      "created_at": "2026-09-10T08:58:32.785Z"
+    },
+    {
+      "id": 2,
+      "name": "Nadeem ",
+      "role": "Senior Printer",
+      "phone": "03214060420",
+      "salary_type": "monthly",
+      "base_salary": 53000,
+      "status": "active",
+      "joined_date": "2026-09-12",
+      "created_at": "2026-09-12T06:29:46.562Z"
+    },
+    {
+      "id": 3,
+      "name": "Raheal",
+      "role": "Worker",
+      "phone": "03104558131",
+      "salary_type": "monthly",
+      "base_salary": 28000,
+      "status": "active",
+      "joined_date": "2026-09-12",
+      "created_at": "2026-09-12T06:35:26.007Z"
+    },
+    {
+      "id": 4,
+      "name": "Hafiz Tanveer",
+      "role": "Machine Operator ",
+      "phone": "03064111579",
+      "salary_type": "monthly",
+      "base_salary": 30000,
+      "status": "active",
+      "joined_date": "2026-09-12",
+      "created_at": "2026-09-12T06:36:07.359Z"
+    },
+    {
+      "id": 5,
+      "name": "Azhar",
+      "role": "Printer HedielBerg",
+      "phone": "03237731776",
+      "salary_type": "monthly",
+      "base_salary": 48000,
+      "status": "active",
+      "joined_date": "2026-09-12",
+      "created_at": "2026-09-12T06:37:03.438Z"
+    },
+    {
+      "id": 6,
+      "name": "Hassan (Salman)",
+      "role": "Machine Helper",
+      "phone": "03311269625",
+      "salary_type": "monthly",
+      "base_salary": 37000,
+      "status": "active",
+      "joined_date": "2026-09-12",
+      "created_at": "2026-09-12T06:39:08.654Z"
+    },
+    {
+      "id": 7,
+      "name": "Shahzaib",
+      "role": "Laimnation Setter",
+      "phone": "03082723116",
+      "salary_type": "monthly",
+      "base_salary": 43000,
+      "status": "active",
+      "joined_date": "2026-09-12",
+      "created_at": "2026-09-12T06:43:44.277Z"
+    }
+  ],
+  "attendance": [
+    {
+      "id": 1,
+      "employee_id": 1,
+      "date": "2026-09-10",
+      "status": "present",
+      "check_in": "10:00",
+      "check_out": "",
+      "overtime_hours": 0,
+      "created_at": "2026-09-10T08:59:01.172Z"
+    },
+    {
+      "id": 2,
+      "employee_id": 1,
+      "date": "2026-09-12",
+      "status": "present",
+      "check_in": "10:00",
+      "check_out": "18:00",
+      "overtime_hours": 0,
+      "created_at": "2026-09-12T06:58:37.046Z"
+    },
+    {
+      "id": 3,
+      "employee_id": 2,
+      "date": "2026-09-12",
+      "status": "present",
+      "check_in": "10:00",
+      "check_out": "18:00",
+      "overtime_hours": 0,
+      "created_at": "2026-09-12T06:58:37.046Z"
+    },
+    {
+      "id": 4,
+      "employee_id": 3,
+      "date": "2026-09-12",
+      "status": "present",
+      "check_in": "10:00",
+      "check_out": "18:00",
+      "overtime_hours": 0,
+      "created_at": "2026-09-12T06:58:37.046Z"
+    },
+    {
+      "id": 5,
+      "employee_id": 4,
+      "date": "2026-09-12",
+      "status": "present",
+      "check_in": "10:00",
+      "check_out": "18:00",
+      "overtime_hours": 0,
+      "created_at": "2026-09-12T06:58:37.046Z"
+    },
+    {
+      "id": 6,
+      "employee_id": 5,
+      "date": "2026-09-12",
+      "status": "present",
+      "check_in": "10:00",
+      "check_out": "18:00",
+      "overtime_hours": 0,
+      "created_at": "2026-09-12T06:58:37.046Z"
+    },
+    {
+      "id": 7,
+      "employee_id": 6,
+      "date": "2026-09-12",
+      "status": "present",
+      "check_in": "10:00",
+      "check_out": "18:00",
+      "overtime_hours": 0,
+      "created_at": "2026-09-12T06:58:37.046Z"
+    },
+    {
+      "id": 8,
+      "employee_id": 7,
+      "date": "2026-09-12",
+      "status": "present",
+      "check_in": "",
+      "check_out": "",
+      "overtime_hours": 0,
+      "created_at": "2026-09-12T06:58:37.046Z"
+    },
+    {
+      "id": 9,
+      "employee_id": 1,
+      "date": "2026-09-14",
+      "status": "present",
+      "check_in": "10:00",
+      "check_out": "",
+      "overtime_hours": 0,
+      "created_at": "2026-09-14T06:25:40.355Z"
+    },
+    {
+      "id": 10,
+      "employee_id": 2,
+      "date": "2026-09-14",
+      "status": "present",
+      "check_in": "10:00",
+      "check_out": "",
+      "overtime_hours": 0,
+      "created_at": "2026-09-14T06:25:40.355Z"
+    },
+    {
+      "id": 11,
+      "employee_id": 3,
+      "date": "2026-09-14",
+      "status": "present",
+      "check_in": "10:00",
+      "check_out": "",
+      "overtime_hours": 0,
+      "created_at": "2026-09-14T06:25:40.355Z"
+    },
+    {
+      "id": 12,
+      "employee_id": 4,
+      "date": "2026-09-14",
+      "status": "present",
+      "check_in": "10:00",
+      "check_out": "",
+      "overtime_hours": 0,
+      "created_at": "2026-09-14T06:25:40.355Z"
+    },
+    {
+      "id": 13,
+      "employee_id": 5,
+      "date": "2026-09-14",
+      "status": "absent",
+      "check_in": "10:00",
+      "check_out": "",
+      "overtime_hours": 0,
+      "created_at": "2026-09-14T06:25:40.355Z"
+    },
+    {
+      "id": 14,
+      "employee_id": 6,
+      "date": "2026-09-14",
+      "status": "present",
+      "check_in": "10:00",
+      "check_out": "",
+      "overtime_hours": 0,
+      "created_at": "2026-09-14T06:25:40.355Z"
+    },
+    {
+      "id": 15,
+      "employee_id": 7,
+      "date": "2026-09-14",
+      "status": "present",
+      "check_in": "",
+      "check_out": "",
+      "overtime_hours": 0,
+      "created_at": "2026-09-14T06:25:40.355Z"
+    }
+  ],
+  "salaries": [],
+  "expenses": [
+    {
+      "id": 1,
+      "category": "Utility Bills",
+      "amount": 28000,
+      "date": "2026-09-12",
+      "description": "Electricity",
+      "created_at": "2026-09-12T08:21:57.493Z"
+    }
+  ]
 }

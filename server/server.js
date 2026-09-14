@@ -11,6 +11,40 @@ const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 
 const PORT = process.env.PORT || 3000;
 
+// ── AUTH ──────────────────────────────────────────────────────────
+const USERS_FILE = path.join(__dirname, 'users.json');
+let USERS = [];
+try { USERS = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8')); } catch { USERS = []; }
+
+const SESSIONS_FILE = path.join(__dirname, 'sessions.json');
+let _loadedSessions = [];
+try { _loadedSessions = JSON.parse(fs.readFileSync(SESSIONS_FILE, 'utf8')); } catch {}
+const SESSIONS = new Map(_loadedSessions);
+
+function saveSessions() {
+  fs.writeFileSync(SESSIONS_FILE, JSON.stringify(Array.from(SESSIONS.entries())));
+}
+const HR_ROLES = ['CEO', 'CTO'];
+
+function generateToken() {
+  return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
+function getSession(req) {
+  const auth = req.headers['x-auth-token'] || '';
+  return SESSIONS.get(auth) || null;
+}
+
+function requireHR(req, res) {
+  const session = getSession(req);
+  if (!session || !HR_ROLES.includes(session.role)) {
+    sendJSON(res, { error: 'Access denied. HR access requires CEO or CTO role.' }, 403);
+    return false;
+  }
+  return true;
+}
+// ─────────────────────────────────────────────────────────────────
+
 // Helper to parse JSON request body
 function parseBody(req) {
   return new Promise((resolve) => {
@@ -94,6 +128,34 @@ const server = http.createServer(async (req, res) => {
     // -------------------------------------------------------------
 
     // 1. DASHBOARD METRICS
+    
+    // -- LOGIN ------------------------------------------------------
+    if (pathname === '/api/login' && method === 'POST') {
+      const body = await parseBody(req);
+      const user = USERS.find(u => u.username === body.username && u.password === body.password);
+      if (!user) return sendJSON(res, { error: 'Invalid username or password' }, 401);
+      const token = generateToken();
+      SESSIONS.set(token, { username: user.username, role: user.role, name: user.name });
+    saveSessions();
+      saveSessions();
+      return sendJSON(res, { token, role: user.role, name: user.name });
+    }
+
+    if (pathname === '/api/logout' && method === 'POST') {
+      const auth = req.headers['x-auth-token'] || '';
+      SESSIONS.delete(auth);
+    saveSessions();
+      saveSessions();
+      return sendJSON(res, { message: 'Logged out' });
+    }
+
+    if (pathname === '/api/me' && method === 'GET') {
+      const session = getSession(req);
+      if (!session) return sendJSON(res, { error: 'Not authenticated' }, 401);
+      return sendJSON(res, session);
+    }
+    // --------------------------------------------------------------
+
     if (pathname === '/api/dashboard' && method === 'GET') {
       const activeJobs = db.data.jobs.filter(j => j.status === 'active');
       const solna1Jobs = activeJobs.filter(j => j.current_stage === 'printing' && j.solna_machine === 1).length;
@@ -1428,6 +1490,129 @@ const server = http.createServer(async (req, res) => {
     }
 
     // -------------------------------------------------------------
+    // EMPLOYEES & HR API
+    // -------------------------------------------------------------
+    if (pathname === '/api/employees' && method === 'GET') {
+      if (!getSession(req)) return sendJSON(res, { error: 'Login required' }, 401);
+      return sendJSON(res, db.data.employees || []);
+    }
+
+    if (pathname === '/api/employees' && method === 'POST') {
+      if (!requireHR(req, res)) return;
+      const body = await parseBody(req);
+      const newEmployee = {
+        id: db.getNextId('employees'),
+        name: body.name,
+        role: body.role,
+        phone: body.phone || '',
+        salary_type: body.salary_type || 'monthly',
+        base_salary: parseFloat(body.base_salary) || 0,
+        status: 'active',
+        joined_date: body.joined_date || new Date().toISOString().split('T')[0],
+        created_at: new Date().toISOString()
+      };
+      db.data.employees.push(newEmployee);
+      db.save();
+      return sendJSON(res, { message: 'Employee added', employee: newEmployee });
+    }
+
+    const editEmployeeMatch = pathname.match(/^\/api\/employees\/(\d+)$/);
+    if (editEmployeeMatch && method === 'PUT') {
+      if (!requireHR(req, res)) return;
+      const empId = parseInt(editEmployeeMatch[1]);
+      const emp = (db.data.employees || []).find(e => e.id === empId);
+      if (!emp) return sendJSON(res, { error: 'Employee not found' }, 404);
+      const body = await parseBody(req);
+      emp.name = body.name || emp.name;
+      emp.role = body.role || emp.role;
+      emp.phone = body.phone || emp.phone;
+      emp.salary_type = body.salary_type || emp.salary_type;
+      emp.base_salary = parseFloat(body.base_salary) || emp.base_salary;
+      emp.status = body.status || emp.status;
+      db.save();
+      return sendJSON(res, { message: 'Employee updated', employee: emp });
+    }
+
+    // -------------------------------------------------------------
+    // ATTENDANCE API
+    // -------------------------------------------------------------
+    if (pathname === '/api/attendance' && method === 'GET') {
+      if (!getSession(req)) return sendJSON(res, { error: 'Login required' }, 401);
+      // ?date=YYYY-MM-DD
+      const date = parsedUrl.query?.date;
+      let records = db.data.attendance || [];
+      if (date) {
+        records = records.filter(r => r.date === date);
+      }
+      return sendJSON(res, records);
+    }
+
+    if (pathname === '/api/attendance' && method === 'POST') {
+      if (!getSession(req)) return sendJSON(res, { error: 'Login required' }, 401);
+      // Expecting array of attendance updates
+      const body = await parseBody(req);
+      if (!body.date || !Array.isArray(body.records)) {
+        return sendJSON(res, { error: 'Invalid attendance data' }, 400);
+      }
+      
+      const date = body.date;
+      body.records.forEach(update => {
+        let existing = db.data.attendance.find(a => a.employee_id === update.employee_id && a.date === date);
+        if (existing) {
+          existing.status = update.status || existing.status;
+          existing.check_in = update.check_in || existing.check_in;
+          existing.check_out = update.check_out || existing.check_out;
+          existing.overtime_hours = parseFloat(update.overtime_hours) || 0;
+        } else {
+          db.data.attendance.push({
+            id: db.getNextId('attendance'),
+            employee_id: update.employee_id,
+            date: date,
+            status: update.status || 'present',
+            check_in: update.check_in || '',
+            check_out: update.check_out || '',
+            overtime_hours: parseFloat(update.overtime_hours) || 0,
+            created_at: new Date().toISOString()
+          });
+        }
+      });
+      db.save();
+      return sendJSON(res, { message: 'Attendance saved' });
+    }
+
+    // -------------------------------------------------------------
+    // EXPENSES API
+    // -------------------------------------------------------------
+    if (pathname === '/api/expenses' && method === 'GET') {
+      return sendJSON(res, db.data.expenses || []);
+    }
+
+    if (pathname === '/api/expenses' && method === 'POST') {
+      const body = await parseBody(req);
+      const newExpense = {
+        id: db.getNextId('expenses'),
+        category: body.category || 'Misc',
+        amount: parseFloat(body.amount) || 0,
+        date: body.date || new Date().toISOString().split('T')[0],
+        description: body.description || '',
+        created_at: new Date().toISOString()
+      };
+      db.data.expenses.push(newExpense);
+      db.save();
+      return sendJSON(res, { message: 'Expense added', expense: newExpense });
+    }
+
+    const deleteExpenseMatch = pathname.match(/^\/api\/expenses\/(\d+)$/);
+    if (deleteExpenseMatch && method === 'DELETE') {
+      const expId = parseInt(deleteExpenseMatch[1]);
+      const idx = (db.data.expenses || []).findIndex(e => e.id === expId);
+      if (idx === -1) return sendJSON(res, { error: 'Expense not found' }, 404);
+      db.data.expenses.splice(idx, 1);
+      db.save();
+      return sendJSON(res, { message: 'Expense deleted' });
+    }
+
+    // -------------------------------------------------------------
     // STATIC FRONTEND SERVING
     // -------------------------------------------------------------
     return serveStaticFile(req, res, pathname);
@@ -1448,6 +1633,8 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
 }
 
 export default server;
+
+
 
 
 

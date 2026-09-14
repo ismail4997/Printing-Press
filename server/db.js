@@ -25,7 +25,11 @@ const initialData = {
   client_transactions: [],
   jobs: [],
   machines: [],
-  client_products: []
+  client_products: [],
+  employees: [],
+  attendance: [],
+  salaries: [],
+  expenses: []
 };
 
 class Database {
@@ -77,6 +81,10 @@ class Database {
     if (!this.data.vendor_bills) { this.data.vendor_bills = []; dirty = true; }
     if (!this.data.purchase_orders) { this.data.purchase_orders = []; dirty = true; }
     if (!this.data.client_products) { this.data.client_products = []; dirty = true; }
+    if (!this.data.employees) { this.data.employees = []; dirty = true; }
+    if (!this.data.attendance) { this.data.attendance = []; dirty = true; }
+    if (!this.data.salaries) { this.data.salaries = []; dirty = true; }
+    if (!this.data.expenses) { this.data.expenses = []; dirty = true; }
     if (dirty) this.save();
   }
 
@@ -120,3 +128,4 @@ class Database {
 
 export const db = new Database();
 await db.init();
+

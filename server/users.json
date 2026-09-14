@@ -1,0 +1,5 @@
+[
+  { "username": "ali", "password": "press3234866931", "role": "CEO", "name": "Ali" },
+  { "username": "ismail", "password": "press3024598791", "role": "CTO", "name": "Ismail" },
+  { "username": "press12345", "password": "press12345", "role": "operator", "name": "Guest" }
+]

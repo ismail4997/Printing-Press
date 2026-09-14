@@ -77,14 +77,33 @@ class Database {
 
   migrate() {
     let dirty = false;
-    // Migrate: add missing collections
-    if (!this.data.vendor_bills) { this.data.vendor_bills = []; dirty = true; }
-    if (!this.data.purchase_orders) { this.data.purchase_orders = []; dirty = true; }
-    if (!this.data.client_products) { this.data.client_products = []; dirty = true; }
-    if (!this.data.employees) { this.data.employees = []; dirty = true; }
-    if (!this.data.attendance) { this.data.attendance = []; dirty = true; }
-    if (!this.data.salaries) { this.data.salaries = []; dirty = true; }
-    if (!this.data.expenses) { this.data.expenses = []; dirty = true; }
+    let localData = null;
+    try {
+      if (fs.existsSync(DB_FILE)) {
+        localData = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+      }
+    } catch (e) {
+      console.error("Could not read local DB_FILE for migration defaults:", e);
+    }
+
+    const collections = [
+      'vendor_bills', 'purchase_orders', 'client_products',
+      'employees', 'attendance', 'salaries', 'expenses',
+      'vendors', 'clients', 'inventory', 'jobs', 'machines'
+    ];
+
+    for (const col of collections) {
+      if (!this.data[col] || this.data[col].length === 0) {
+        if (localData && Array.isArray(localData[col]) && localData[col].length > 0) {
+          this.data[col] = localData[col];
+          dirty = true;
+          console.log(`Seeded ${col} with ${localData[col].length} records from database.json`);
+        } else if (!this.data[col]) {
+          this.data[col] = [];
+          dirty = true;
+        }
+      }
+    }
     if (dirty) this.save();
   }
 

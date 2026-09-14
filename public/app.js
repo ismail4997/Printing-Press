@@ -2773,6 +2773,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  window.syncProductionData = async function() {
+    if (!confirm('Sync and restore all 7 staff members and attendance records to this database?')) return;
+    try {
+      const res = await fetch('/api/admin/sync-seed', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast('Error', data.error || 'Failed to sync data', 'error');
+        return;
+      }
+      showToast('Success', `Synced ${data.employeesCount} staff and ${data.attendanceCount} attendance records!`, 'success');
+      await loadAllData();
+      renderEmployees();
+      if (window.renderAttendanceChart) window.renderAttendanceChart();
+    } catch (err) {
+      showToast('Error', 'Sync failed: ' + err.message, 'error');
+    }
+  };
+
 
   // =============================================================
   // AUTH / LOGIN SYSTEM

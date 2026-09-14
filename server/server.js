@@ -1621,6 +1621,34 @@ const server = http.createServer(async (req, res) => {
       return sendJSON(res, { message: 'Expense deleted' });
     }
 
+    // ── ADMIN DATA REPLICATION / SYNC ─────────────────────────────
+    if (pathname === '/api/admin/sync-seed' && method === 'POST') {
+      if (!requireHR(req, res)) return;
+      const DB_FILE = path.join(__dirname, '..', 'database.json');
+      if (fs.existsSync(DB_FILE)) {
+        try {
+          const localData = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+          if (localData.employees && localData.employees.length > 0) db.data.employees = localData.employees;
+          if (localData.attendance && localData.attendance.length > 0) db.data.attendance = localData.attendance;
+          if (localData.expenses && localData.expenses.length > 0) db.data.expenses = localData.expenses;
+          if (localData.salaries && localData.salaries.length > 0) db.data.salaries = localData.salaries;
+          if (localData.vendors && localData.vendors.length > 0 && (!db.data.vendors || db.data.vendors.length === 0)) db.data.vendors = localData.vendors;
+          if (localData.clients && localData.clients.length > 0 && (!db.data.clients || db.data.clients.length === 0)) db.data.clients = localData.clients;
+          if (localData.inventory && localData.inventory.length > 0 && (!db.data.inventory || db.data.inventory.length === 0)) db.data.inventory = localData.inventory;
+          db.save();
+          return sendJSON(res, {
+            message: 'Database synced successfully with bundled data',
+            employeesCount: db.data.employees?.length || 0,
+            attendanceCount: db.data.attendance?.length || 0,
+            expensesCount: db.data.expenses?.length || 0
+          });
+        } catch (err) {
+          return sendJSON(res, { error: 'Failed to read database.json: ' + err.message }, 500);
+        }
+      }
+      return sendJSON(res, { error: 'database.json not found' }, 404);
+    }
+
     // -------------------------------------------------------------
     // STATIC FRONTEND SERVING
     // -------------------------------------------------------------

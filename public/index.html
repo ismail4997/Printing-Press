@@ -570,16 +570,56 @@
               </div>
             </div>
 
-            <div class="ledger-action-bar">
+            <div class="ledger-action-bar" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem;">
+              <button class="btn btn-primary" onclick="openCreateTaxInvoiceModal()">
+                <i data-lucide="file-plus"></i> Create Sale Tax Invoice
+              </button>
               <button class="btn btn-emerald" id="btn-record-client-payment">
-                <i data-lucide="arrow-down-left"></i> Receive Payment from Customer
+                <i data-lucide="arrow-down-left"></i> Receive Payment
+              </button>
+              <button class="btn btn-secondary" onclick="openCompanyProfileModal()" title="Edit Company Details & NTN">
+                <i data-lucide="building"></i> Company Profile
               </button>
               <button class="btn btn-secondary" onclick="openEditOpeningBalanceModal('client')">
-                <i data-lucide="edit"></i> Edit Opening Balance
+                <i data-lucide="edit"></i> Opening Balance
               </button>
-              <button class="btn btn-secondary" onclick="window.print()">
-                <i data-lucide="printer"></i> Print Customer Statement
+              <button class="btn btn-secondary" onclick="printCustomerStatement()">
+                <i data-lucide="printer"></i> Print Statement
               </button>
+            </div>
+
+            <!-- SALE TAX INVOICES TABLE -->
+            <div style="margin-bottom: 1.5rem; background: rgba(6, 182, 212, 0.04); border: 1px solid rgba(6, 182, 212, 0.25); border-radius: 12px; padding: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
+                <div>
+                  <h4 style="margin: 0; color: #38bdf8; display: flex; align-items: center; gap: 6px; font-size: 0.95rem;">
+                    <i data-lucide="file-text"></i> Sale Tax Invoices (Medicine & Packaging)
+                  </h4>
+                  <p style="font-size: 0.76rem; color: #94a3b8; margin: 2px 0 0 0;">Official Sales Tax Invoices for Robinson, Mclosn & customer orders</p>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="openCreateTaxInvoiceModal()">
+                  <i data-lucide="plus"></i> New Tax Invoice
+                </button>
+              </div>
+              <div class="table-container">
+                <table class="data-table" style="font-size: 0.84rem;">
+                  <thead>
+                    <tr>
+                      <th>Invoice #</th>
+                      <th>Date</th>
+                      <th>PO #</th>
+                      <th>Description</th>
+                      <th style="text-align: right;">Excl. Tax (Rs.)</th>
+                      <th style="text-align: right;">Sales Tax (18%)</th>
+                      <th style="text-align: right;">Net Total (Rs.)</th>
+                      <th style="text-align: center;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="table-tax-invoices-body">
+                    <tr><td colspan="8" class="text-center text-muted">Select a customer to view invoices</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <h4>Client Products / Box Sizes</h4>
@@ -604,7 +644,7 @@
 
             <hr style="border-color: var(--slate-700); margin: 2rem 0;">
 
-            <h4>Account Statement & Invoices</h4>
+            <h4><i data-lucide="receipt"></i> Account Statement & Ledger</h4>
             <table class="data-table ledger-table">
               <thead>
                 <tr>

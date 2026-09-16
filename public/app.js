@@ -1032,7 +1032,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const txs = res.transactions;
 
       document.getElementById('c-detail-name').innerText = c.name;
-      document.getElementById('c-detail-company').innerText = c.company ? `${c.company} â€¢ Phone: ${c.phone}` : (c.phone || '');
+      const ntnStr = c.ntn ? ` • NTN: ${c.ntn}` : '';
+      const addrStr = c.address ? ` • Address: ${c.address}` : '';
+      document.getElementById('c-detail-company').innerText = (c.company ? `${c.company} • ` : '') + `Phone: ${c.phone || 'N/A'}` + ntnStr + addrStr;
       
       const cBalanceLbl = document.getElementById('c-detail-balance-lbl');
       const cBalanceVal = document.getElementById('c-detail-balance');
@@ -1047,9 +1049,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       loadClientProductsForIssue(c.id);
+      if (window.renderTaxInvoices) window.renderTaxInvoices(c.id);
 
       const tbody = document.getElementById('table-client-ledger-body');
-      tbody.innerHTML = txs.length ? txs.map(t => `
+      tbody.innerHTML = txs.length ? txs.map(t => {
+        const isInvoice = (t.type === 'INVOICE');
+        const descEscaped = (t.description || '').replace(/'/g, "\\'");
+        return `
         <tr>
           <td>${t.date}</td>
           <td><strong>${t.job_no || '-'}</strong></td>
@@ -1058,9 +1064,15 @@ document.addEventListener('DOMContentLoaded', () => {
           <td style="color: var(--amber); font-weight: bold;">${t.debit > 0 ? 'Rs. ' + t.debit.toLocaleString() : '-'}</td>
           <td style="color: var(--emerald); font-weight: bold;">${t.credit > 0 ? 'Rs. ' + t.credit.toLocaleString() : '-'}</td>
           <td><strong>Rs. ${t.balance_after.toLocaleString()}</strong></td>
-          <td><button class="btn-delete-row" onclick="deleteClientTx(${c.id}, ${t.id}, '${t.type}', ${t.debit || t.credit})">ðŸ—‘ Delete</button></td>
+          <td style="white-space: nowrap;">
+            ${isInvoice ? `<button class="btn btn-primary btn-sm" style="padding: 0.2rem 0.55rem; font-size: 0.75rem; margin-right: 4px;" onclick="openTaxInvoiceForJob('${t.job_no || ''}', ${c.id}, ${t.debit || 0}, '${descEscaped}')"><i data-lucide="printer"></i> Tax Invoice</button>` : ''}
+            <button class="btn-delete-row" onclick="deleteClientTx(${c.id}, ${t.id}, '${t.type}', ${t.debit || t.credit})">🗑 Delete</button>
+          </td>
         </tr>
-      `).join('') : `<tr><td colspan="8" class="text-center text-muted">No transactions found</td></tr>`;
+      `;
+      }).join('') : `<tr><td colspan="8" class="text-center text-muted">No transactions found</td></tr>`;
+
+      if (window.lucide) { window.lucide.createIcons(); }
 
     } catch (err) {
       console.error("Error loading client ledger:", err);
@@ -3466,3 +3478,109 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+  window.openTaxInvoiceForJob = function(jobNo, clientId, totalAmount, desc) {
+    // Check if an invoice already exists for this client or create one from job details
+    const existing = (state.tax_invoices || []).find(i => i.client_id === clientId && i.po_no === jobNo);
+    if (existing) {
+      viewTaxInvoice(existing.id);
+      return;
+    }
+
+    // Otherwise open create modal pre-filled with this job!
+    openCreateTaxInvoiceModal();
+    if (jobNo) document.getElementById('inv-po-no').value = jobNo;
+
+    // Parse description like "Delivered 8700 boxes of Orex plus syp 120ml @ Rs. 5.90/box"
+    const tbody = document.getElementById('invoice-items-body');
+    tbody.innerHTML = '';
+
+    let qty = 1000;
+    let rate = 5.90;
+    let title = desc;
+
+    const qtyMatch = desc.match(/Delivered\s+(\d+)\s+boxes/i);
+    if (qtyMatch) qty = parseFloat(qtyMatch[1]);
+
+    const rateMatch = desc.match(/@\s*Rs\.?\s*([\d.]+)/i);
+    if (rateMatch) rate = parseFloat(rateMatch[1]);
+
+    const titleMatch = desc.match(/boxes of\s+(.*?)(?:@|$)/i);
+    if (titleMatch) title = titleMatch[1].trim() + " Unit Carton";
+
+    addInvoiceItemRow({
+      description: title || "Pharmaceutical Unit Carton / Packaging",
+      qty: qty,
+      price: rate,
+      tax_rate: 18
+    });
+
+    calcTaxInvoiceLiveTotals();
+  };
+
+  window.printCustomerStatement = function() {
+    window.print();
+  };
+
+  // High-fidelity print for A4 Tax Invoice
+  window.printCurrentTaxInvoice = function() {
+    const sheetContent = document.getElementById('printable-tax-invoice-sheet').innerHTML;
+    const printWindow = window.open('', '_blank', 'width=900,height=800');
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Sale Tax Invoice - Mahmoodiyah Packages</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: 'Inter', system-ui, sans-serif; background: #ffffff; color: #0f172a; padding: 20px; font-size: 11.5px; }
+          .printable-a4-sheet { max-width: 100%; margin: 0 auto; }
+          .inv-header-container { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+          .inv-brand-left { display: flex; gap: 12px; align-items: center; }
+          .inv-brand-logo-icon { width: 50px; height: 50px; background: #1e40af; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 24px; font-weight: 900; font-family: 'Outfit', sans-serif; }
+          .inv-brand-titles h1 { font-size: 20px; font-weight: 900; color: #1e3a8a; margin: 0; text-transform: uppercase; }
+          .inv-brand-tagline-pill { background: #1e293b; color: #ffffff; font-size: 8px; font-weight: 800; padding: 2px 7px; border-radius: 4px; display: inline-block; margin: 3px 0; }
+          .inv-brand-address { font-size: 9px; color: #475569; }
+          .inv-header-right { text-align: right; font-size: 10.5px; }
+          .inv-header-right-accent { width: 80px; height: 6px; background: #2563eb; margin-left: auto; margin-bottom: 6px; border-radius: 2px; }
+          .inv-title-badge-wrapper { text-align: center; margin: 8px 0 12px 0; }
+          .inv-title-badge { display: inline-block; border: 1.5px solid #1e3a8a; border-radius: 5px; padding: 3px 18px; font-size: 13px; font-weight: 800; color: #1e3a8a; background: #f8fafc; }
+          .inv-meta-row { display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 600; margin-bottom: 10px; }
+          .inv-meta-val { border-bottom: 1px solid #94a3b8; display: inline-block; min-width: 80px; text-align: center; font-weight: 700; }
+          .inv-two-col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; margin-bottom: 14px; background: #fcfdfd; }
+          .inv-col-field { margin-bottom: 5px; font-size: 10px; display: flex; align-items: baseline; gap: 6px; }
+          .inv-col-lbl { font-weight: 700; color: #1e293b; white-space: nowrap; }
+          .inv-col-val { border-bottom: 1px dotted #94a3b8; flex: 1; color: #0f172a; font-weight: 600; }
+          .inv-table-goods { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 10px; }
+          .inv-table-goods th { background: #1e40af; color: #ffffff; font-weight: 700; padding: 6px 5px; text-align: center; border: 1px solid #1e3a8a; }
+          .inv-table-goods td { border: 1px solid #cbd5e1; padding: 5px 6px; }
+          .inv-table-totals-row td { background: #f1f5f9; font-weight: 700; border-top: 2px solid #1e40af; }
+          .text-right { text-align: right; }
+          .text-center { text-align: center; }
+          .inv-bottom-section { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px; }
+          .inv-bottom-left { width: 48%; }
+          .inv-summary-line { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 11px; font-weight: 700; }
+          .inv-summary-line .sum-val { border-bottom: 2px solid #0f172a; min-width: 100px; text-align: right; font-size: 12px; }
+          .inv-bottom-right { text-align: right; width: 45%; }
+          .inv-signature-block { display: flex; justify-content: flex-end; gap: 12px; align-items: center; }
+          .inv-stamp-circle { width: 65px; height: 65px; border: 2px solid #1e40af; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #1e40af; font-size: 7px; font-weight: 800; transform: rotate(-10deg); }
+          @page { size: A4 portrait; margin: 10mm; }
+        </style>
+      </head>
+      <body>
+        <div class="printable-a4-sheet">
+          ${sheetContent}
+        </div>
+        <script>
+          window.onload = function() {
+            window.print();
+            setTimeout(function() { window.close(); }, 500);
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };

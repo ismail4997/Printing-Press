@@ -1823,34 +1823,14 @@ canvas {
 }
 
 /* PRINT MEDIA RULES */
+
 @media print {
-  body * {
-    visibility: hidden;
+  body {
+    background: #fff !important;
+    color: #000 !important;
   }
-  #modal-tax-invoice-view,
-  #modal-tax-invoice-view *,
-  #printable-tax-invoice-sheet,
-  #printable-tax-invoice-sheet * {
-    visibility: visible;
-  }
-  #modal-tax-invoice-view {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100% !important;
-    height: 100% !important;
-    background: #ffffff !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-  .modal-header, .modal-close {
+  .app-header, .nav-tabs, .sidebar-card, .ledger-action-bar, .header-actions, .modal-header, .modal-close, .btn {
     display: none !important;
   }
-  .printable-a4-sheet {
-    box-shadow: none !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    padding: 20mm !important;
-    margin: 0 !important;
-  }
 }
+

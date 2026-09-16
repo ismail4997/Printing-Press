@@ -1025,7 +1025,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderClients();
   };
 
-  async function loadClientLedger(cId) {
+    async function loadClientLedger(cId) {
     try {
       const res = await fetch(`/api/clients/${cId}/ledger`).then(r => r.json());
       const c = res.client;
@@ -1051,12 +1051,23 @@ document.addEventListener('DOMContentLoaded', () => {
       loadClientProductsForIssue(c.id);
       if (window.renderTaxInvoices) window.renderTaxInvoices(c.id);
 
+      // Reset selection state
+      const selectAll = document.getElementById('client-ledger-select-all');
+      if (selectAll) selectAll.checked = false;
+      const combinedBtn = document.getElementById('btn-combined-tax-invoice');
+      if (combinedBtn) combinedBtn.style.display = 'none';
+      const countSpan = document.getElementById('selected-deliveries-count');
+      if (countSpan) countSpan.textContent = '0';
+
       const tbody = document.getElementById('table-client-ledger-body');
       tbody.innerHTML = txs.length ? txs.map(t => {
         const isInvoice = (t.type === 'INVOICE');
         const descEscaped = (t.description || '').replace(/'/g, "\\'");
         return `
         <tr>
+          <td style="text-align: center;">
+            ${isInvoice ? `<input type="checkbox" class="client-ledger-checkbox" data-job="${t.job_no || ''}" data-amount="${t.debit || 0}" data-desc="${descEscaped}" data-date="${t.date}" onchange="updateSelectedLedgerItems()">` : ''}
+          </td>
           <td>${t.date}</td>
           <td><strong>${t.job_no || '-'}</strong></td>
           <td><span class="badge ${t.type === 'PAYMENT' ? 'badge-success' : 'badge-warning'}">${t.type}</span></td>
@@ -1070,7 +1081,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </td>
         </tr>
       `;
-      }).join('') : `<tr><td colspan="8" class="text-center text-muted">No transactions found</td></tr>`;
+      }).join('') : `<tr><td colspan="9" class="text-center text-muted">No transactions found</td></tr>`;
 
       if (window.lucide) { window.lucide.createIcons(); }
 
@@ -3498,27 +3509,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   window.openTaxInvoiceForJob = function(jobNo, clientId, totalAmount, desc) {
-    let qty = 1000;
-    let rate = 5.90;
-    let title = "Unit Carton / Packaging";
-
-    const qtyMatch = desc.match(/Delivered\s+([\d,]+)\s+boxes/i);
-    if (qtyMatch) qty = parseFloat(qtyMatch[1].replace(/,/g, ''));
-
-    const rateMatch = desc.match(/@\s*Rs\.?\s*([\d.]+)/i);
-    if (rateMatch) rate = parseFloat(rateMatch[1]);
-
-    const titleMatch = desc.match(/boxes of\s+(.*?)(?:@|$)/i);
-    if (titleMatch) title = titleMatch[1].trim() + " Unit Carton";
-
-    const items = [{
-      description: title,
-      qty: qty,
-      price: rate,
-      tax_rate: 18
-    }];
-
-    openCreateTaxInvoiceModal(items);
+    const item = parseJobLedgerItem(jobNo, totalAmount, desc);
+    openCreateTaxInvoiceModal([item]);
     if (jobNo) document.getElementById('inv-po-no').value = jobNo;
   };
 
@@ -3586,4 +3578,191 @@ document.addEventListener('DOMContentLoaded', () => {
       </html>
     `);
     printWindow.document.close();
+  };
+
+  // =============================================================
+  // MULTI-JOB DELIVERIES & COMBINED TAX INVOICE GENERATOR
+  // =============================================================
+
+  window.parseJobLedgerItem = function(jobNo, totalAmount, desc) {
+    let qty = 1000;
+    let rate = 5.90;
+    let title = desc || "Packaging Material";
+
+    // Extract quantity (e.g. Delivered 8,700 boxes / 9,000 labels)
+    const qtyMatch = desc.match(/(?:Delivered\s+)?([\d,]+)\s*(?:boxes|labels|pcs|items|cartons|leaflets|sheets)?/i);
+    if (qtyMatch) {
+      const parsed = parseFloat(qtyMatch[1].replace(/,/g, ''));
+      if (!isNaN(parsed) && parsed > 0) qty = parsed;
+    }
+
+    // Extract unit rate (e.g. @ Rs. 5.90)
+    const rateMatch = desc.match(/@\s*Rs\.?\s*([\d.]+)/i);
+    if (rateMatch) {
+      rate = parseFloat(rateMatch[1]);
+    } else if (qty > 0 && totalAmount > 0) {
+      rate = parseFloat((totalAmount / qty).toFixed(2));
+    }
+
+    // Extract product category / title
+    let itemType = 'Unit Carton';
+    if (/label/i.test(desc)) itemType = 'Bottle Labels';
+    else if (/leaflet|insert/i.test(desc)) itemType = 'Pack Leaflet';
+    else if (/carton|box/i.test(desc)) itemType = 'Unit Carton';
+
+    const ofMatch = desc.match(/of\s+(.*?)(?:\s*@|$)/i);
+    if (ofMatch) {
+      title = `${ofMatch[1].trim()} ${itemType}`;
+    } else {
+      title = desc.replace(/Delivered\s+[\d,]+\s+(?:boxes|labels|cartons|pcs)?\s*/i, '').replace(/@.*$/, '').trim() || (jobNo ? `${jobNo} ${itemType}` : `Pharmaceutical ${itemType}`);
+    }
+
+    return {
+      description: title,
+      qty: qty,
+      price: rate,
+      tax_rate: 18,
+      jobNo: jobNo,
+      amount: totalAmount
+    };
+  };
+
+  window.toggleSelectAllClientLedger = function(isChecked) {
+    const checkboxes = document.querySelectorAll('.client-ledger-checkbox');
+    checkboxes.forEach(cb => cb.checked = isChecked);
+    updateSelectedLedgerItems();
+  };
+
+  window.updateSelectedLedgerItems = function() {
+    const checked = document.querySelectorAll('.client-ledger-checkbox:checked');
+    const btn = document.getElementById('btn-combined-tax-invoice');
+    const countSpan = document.getElementById('selected-deliveries-count');
+    const selectAll = document.getElementById('client-ledger-select-all');
+    const allCheckboxes = document.querySelectorAll('.client-ledger-checkbox');
+
+    if (countSpan) countSpan.textContent = checked.length;
+    if (selectAll) selectAll.checked = (allCheckboxes.length > 0 && checked.length === allCheckboxes.length);
+
+    if (btn) {
+      btn.style.display = checked.length > 0 ? 'inline-flex' : 'none';
+    }
+  };
+
+  window.createCombinedTaxInvoiceFromSelected = function() {
+    const checked = document.querySelectorAll('.client-ledger-checkbox:checked');
+    if (checked.length === 0) {
+      showToast('No Deliveries Selected', 'Please check at least one delivered job to include.', 'warning');
+      return;
+    }
+
+    const items = [];
+    const jobNos = [];
+
+    checked.forEach(cb => {
+      const jobNo = cb.getAttribute('data-job') || '';
+      const amount = parseFloat(cb.getAttribute('data-amount')) || 0;
+      const desc = cb.getAttribute('data-desc') || '';
+
+      const item = parseJobLedgerItem(jobNo, amount, desc);
+      items.push(item);
+      if (jobNo && !jobNos.includes(jobNo)) {
+        jobNos.push(jobNo);
+      }
+    });
+
+    openCreateTaxInvoiceModal(items);
+    if (jobNos.length > 0) {
+      document.getElementById('inv-po-no').value = jobNos.join(', ');
+    }
+  };
+
+  // Import Delivered Jobs Checklist Modal
+  window.openImportDeliveredJobsModal = async function() {
+    const client = state.selectedClient;
+    if (!client) {
+      showToast('Select Customer', 'Please select a customer first.', 'warning');
+      return;
+    }
+
+    const tbody = document.getElementById('table-import-jobs-body');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Loading delivered jobs...</td></tr>';
+    openModal('modal-import-delivered-jobs');
+
+    try {
+      const res = await fetch(`/api/clients/${client.id}/ledger`).then(r => r.json());
+      const deliveredTxs = (res.transactions || []).filter(t => t.type === 'INVOICE');
+
+      if (deliveredTxs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding: 1.5rem;">No delivered jobs found for this customer.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = deliveredTxs.map(t => {
+        const descEscaped = (t.description || '').replace(/'/g, "\\'");
+        const parsed = parseJobLedgerItem(t.job_no || '', t.debit || 0, t.description || '');
+
+        return `
+          <tr>
+            <td style="text-align: center;">
+              <input type="checkbox" class="import-job-checkbox" data-job="${t.job_no || ''}" data-desc="${descEscaped}" data-qty="${parsed.qty}" data-rate="${parsed.price}" data-title="${parsed.description.replace(/"/g, '&quot;')}">
+            </td>
+            <td><strong>${t.job_no || '-'}</strong></td>
+            <td>${t.date}</td>
+            <td style="max-width: 220px; font-size: 0.8rem;">${parsed.description}</td>
+            <td style="text-align: right;">${Number(parsed.qty).toLocaleString()}</td>
+            <td style="text-align: right;">Rs. ${Number(parsed.price).toFixed(2)}</td>
+            <td style="text-align: right; font-weight: 700; color: #38bdf8;">Rs. ${Number(t.debit || 0).toLocaleString()}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const selectAll = document.getElementById('import-jobs-select-all');
+      if (selectAll) selectAll.checked = false;
+      if (window.lucide) { window.lucide.createIcons(); }
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center text-rose">Failed to load: ${err.message}</td></tr>`;
+    }
+  };
+
+  window.toggleSelectAllImportJobs = function(isChecked) {
+    const checkboxes = document.querySelectorAll('.import-job-checkbox');
+    checkboxes.forEach(cb => cb.checked = isChecked);
+  };
+
+  window.insertSelectedDeliveredJobs = function() {
+    const checked = document.querySelectorAll('.import-job-checkbox:checked');
+    if (checked.length === 0) {
+      showToast('Select Items', 'Please check at least one delivered item to insert.', 'warning');
+      return;
+    }
+
+    const jobNos = [];
+    checked.forEach(cb => {
+      const jobNo = cb.getAttribute('data-job');
+      const desc = cb.getAttribute('data-title');
+      const qty = parseFloat(cb.getAttribute('data-qty')) || 1000;
+      const price = parseFloat(cb.getAttribute('data-rate')) || 5.90;
+
+      addInvoiceItemRow({
+        description: desc,
+        qty: qty,
+        price: price,
+        tax_rate: 18
+      });
+
+      if (jobNo && !jobNos.includes(jobNo)) {
+        jobNos.push(jobNo);
+      }
+    });
+
+    const poInput = document.getElementById('inv-po-no');
+    if (poInput && jobNos.length > 0) {
+      const existingPO = poInput.value.trim();
+      poInput.value = existingPO ? `${existingPO}, ${jobNos.join(', ')}` : jobNos.join(', ');
+    }
+
+    closeModal('modal-import-delivered-jobs');
+    calcTaxInvoiceLiveTotals();
+    showToast('Items Added', `${checked.length} item(s) added to invoice table!`, 'success');
   };

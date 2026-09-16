@@ -5,7 +5,7 @@
       "name": "supper paper mart",
       "category": "paper_supplier",
       "phone": "03004203903",
-      "balance": 0,
+      "balance": 191460,
       "initial_balance": 0,
       "created_at": "2026-09-07T08:12:40.605Z"
     }
@@ -19,7 +19,7 @@
       "address": "H # 194-B, BOR Society Masjid Chowk Johar Town, Lahore.",
       "ntn": "4483577",
       "strn": "",
-      "balance": 0,
+      "balance": 65540,
       "created_at": "2026-09-16T09:07:48.790Z"
     },
     {
@@ -34,9 +34,122 @@
       "created_at": "2026-09-16T09:07:48.790Z"
     }
   ],
-  "inventory": [],
-  "vendor_transactions": [],
-  "vendor_bills": [],
+  "inventory": [
+    {
+      "id": 1,
+      "paper_type": "Bleach Card",
+      "gsm": 300,
+      "size_w": 25,
+      "size_h": 30,
+      "pkt_qty": 32,
+      "sheet_qty": 3200,
+      "min_alert_pkts": 10,
+      "vendor_id": 1,
+      "rate_per_kg": 318,
+      "rate_per_pkt": 4616
+    },
+    {
+      "id": 2,
+      "paper_type": "Bleach Card",
+      "gsm": 300,
+      "size_w": 25,
+      "size_h": 15,
+      "pkt_qty": 1,
+      "sheet_qty": 100,
+      "min_alert_pkts": 10,
+      "vendor_id": 1,
+      "rate_per_pkt": 2308,
+      "rate_per_kg": 318
+    },
+    {
+      "id": 3,
+      "paper_type": "Art Paper",
+      "gsm": 80,
+      "size_w": 15,
+      "size_h": 20,
+      "pkt_qty": 10,
+      "sheet_qty": 1000,
+      "min_alert_pkts": 10,
+      "vendor_id": 1,
+      "rate_per_kg": 220,
+      "rate_per_pkt": 341
+    },
+    {
+      "id": 4,
+      "paper_type": "Art Paper",
+      "gsm": 80,
+      "size_w": 15,
+      "size_h": 10,
+      "pkt_qty": 5,
+      "sheet_qty": 500,
+      "min_alert_pkts": 10,
+      "vendor_id": 1,
+      "rate_per_pkt": 171,
+      "rate_per_kg": 220
+    }
+  ],
+  "vendor_transactions": [
+    {
+      "id": 1,
+      "vendor_id": 1,
+      "bill_id": 1,
+      "date": "2026-09-16",
+      "type": "PURCHASE",
+      "description": "Received 40 Pkts Bleach Card 300gsm (25x30) @ Rs. 318/KG (14.52 KG/pkt) [PO-1001]",
+      "debit": 0,
+      "credit": 184640,
+      "balance_after": 184640
+    },
+    {
+      "id": 2,
+      "vendor_id": 1,
+      "bill_id": 2,
+      "date": "2026-09-16",
+      "type": "PURCHASE",
+      "description": "Received 20 Pkts Art Paper 80gsm (15x20) @ Rs. 220/KG (1.55 KG/pkt) [PO-1002]",
+      "debit": 0,
+      "credit": 6820,
+      "balance_after": 191460
+    }
+  ],
+  "vendor_bills": [
+    {
+      "id": 1,
+      "vendor_id": 1,
+      "bill_no": "VB-1001",
+      "order_no": "PO-1001",
+      "date": "2026-09-16",
+      "description": "40 Pkts Bleach Card 300gsm (25x30) @ Rs. 318/KG",
+      "paper_type": "Bleach Card",
+      "gsm": 300,
+      "total_amount": 184640,
+      "paid_amount": 0,
+      "remaining_amount": 184640,
+      "payment_type": "credit",
+      "credit_days": 30,
+      "due_date": "2026-10-16",
+      "status": "unpaid",
+      "created_at": "2026-09-16T09:22:12.920Z"
+    },
+    {
+      "id": 2,
+      "vendor_id": 1,
+      "bill_no": "VB-1002",
+      "order_no": "PO-1002",
+      "date": "2026-09-16",
+      "description": "20 Pkts Art Paper 80gsm (15x20) @ Rs. 220/KG",
+      "paper_type": "Art Paper",
+      "gsm": 80,
+      "total_amount": 6820,
+      "paid_amount": 0,
+      "remaining_amount": 6820,
+      "payment_type": "credit",
+      "credit_days": 30,
+      "due_date": "2026-10-16",
+      "status": "unpaid",
+      "created_at": "2026-09-16T10:38:32.537Z"
+    }
+  ],
   "purchase_orders": [
     {
       "id": 1,
@@ -46,22 +159,160 @@
       "paper_type": "Bleach Card",
       "gsm": 300,
       "size_w": 25,
-      "size_h": 36,
-      "ordered_pkts": 20,
+      "size_h": 30,
+      "ordered_pkts": 40,
       "rate_per_kg": 318,
-      "estimated_total": 110787,
-      "status": "ordered",
-      "received_pkts": 0,
-      "received_date": null,
-      "bill_id": null,
+      "estimated_total": 184645,
+      "status": "received",
+      "received_pkts": 40,
+      "received_date": "2026-09-16",
+      "bill_id": 1,
       "notes": "",
-      "created_at": "2026-09-16T08:45:31.448Z"
+      "created_at": "2026-09-16T09:22:00.865Z"
+    },
+    {
+      "id": 2,
+      "order_no": "PO-1002",
+      "vendor_id": 1,
+      "date": "2026-09-16",
+      "paper_type": "Art Paper",
+      "gsm": 80,
+      "size_w": 15,
+      "size_h": 20,
+      "ordered_pkts": 20,
+      "rate_per_kg": 220,
+      "estimated_total": 6813,
+      "status": "received",
+      "received_pkts": 20,
+      "received_date": "2026-09-16",
+      "bill_id": 2,
+      "notes": "",
+      "created_at": "2026-09-16T10:38:29.147Z"
     }
   ],
-  "client_transactions": [],
-  "jobs": [],
+  "client_transactions": [
+    {
+      "id": 1,
+      "client_id": 1,
+      "job_no": "JOB-1001",
+      "date": "2026-09-16",
+      "type": "INVOICE",
+      "description": "Delivered 8700 boxes of Orex plus syp 120ml @ Rs. 5.90/box",
+      "debit": 51330,
+      "credit": 0,
+      "balance_after": 51330
+    },
+    {
+      "id": 2,
+      "client_id": 1,
+      "job_no": "JOB-1002",
+      "date": "2026-09-16",
+      "type": "INVOICE",
+      "description": "Delivered 14500 boxes of Orex plus syp 120ml label @ Rs. 0.98/box",
+      "debit": 14210,
+      "credit": 0,
+      "balance_after": 65540
+    }
+  ],
+  "jobs": [
+    {
+      "id": 1,
+      "job_no": "JOB-1001",
+      "client_id": 1,
+      "job_title": "Orex plus syp 120ml",
+      "paper_type": "Bleach Card",
+      "gsm": 300,
+      "order_qty": 9000,
+      "pkts_required": 15,
+      "colors": 5,
+      "extra_colors": [
+        {
+          "label": "Special Color 5",
+          "rate": 2500
+        }
+      ],
+      "print_cost": 7950,
+      "material_cost": 34620,
+      "lamination_cost": 3671.88,
+      "die_cut_cost": 0,
+      "current_stage": "delivered",
+      "solna_machine": 1,
+      "produced_qty": 0,
+      "delivered_qty": 8700,
+      "status": "completed",
+      "created_at": "2026-09-16T09:23:11.640Z",
+      "lamination_type": "uv",
+      "lamination_rate": 1.2,
+      "lamination_sheet_w": 12.5,
+      "lamination_sheet_h": 23.5,
+      "total_amount": 4721.88,
+      "diecut_rate": 0.7,
+      "diecut_cost": 1050,
+      "pasting_rate_per_box": 0.5,
+      "pasting_sent_qty": 9000,
+      "pasting_received_qty": 8700,
+      "pasting_cost": 4350,
+      "is_billed": true
+    },
+    {
+      "id": 2,
+      "job_no": "JOB-1002",
+      "client_id": 1,
+      "job_title": "Orex plus syp 120ml label",
+      "paper_type": "Art Paper",
+      "gsm": 80,
+      "order_qty": 15000,
+      "pkts_required": 15,
+      "colors": 5,
+      "extra_colors": [
+        {
+          "label": "Special Color 5",
+          "rate": 600
+        }
+      ],
+      "print_cost": 5100,
+      "material_cost": 2554,
+      "lamination_cost": 0,
+      "die_cut_cost": 0,
+      "current_stage": "delivered",
+      "solna_machine": 1,
+      "produced_qty": 0,
+      "delivered_qty": 14500,
+      "status": "completed",
+      "created_at": "2026-09-16T10:39:58.569Z",
+      "lamination_type": "none",
+      "lamination_rate": 0,
+      "lamination_sheet_w": 18,
+      "lamination_sheet_h": 23,
+      "total_amount": 150,
+      "diecut_rate": 0.1,
+      "diecut_cost": 150,
+      "is_billed": true
+    }
+  ],
   "machines": [],
-  "client_products": [],
+  "client_products": [
+    {
+      "id": 1,
+      "client_id": 1,
+      "name": "Orex plus syp 120ml",
+      "paper_size": "15x25",
+      "ups": 6,
+      "colors": 5,
+      "rate_per_box": 5.9,
+      "description": "BOX WITH UV"
+    },
+    {
+      "id": 2,
+      "client_id": 1,
+      "name": "Orex plus syp 120ml label",
+      "paper_size": "10x15",
+      "ups": 10,
+      "colors": 5,
+      "rate_per_box": 0.98,
+      "description": ""
+    }
+  ],
   "employees": [
     {
       "id": 1,
@@ -361,6 +612,258 @@
       "total_incl_tax": 187648.32,
       "notes": "",
       "created_at": "2026-09-16T09:16:42.440Z"
+    },
+    {
+      "id": 2,
+      "invoice_no": "0001(1515)",
+      "po_no": "1025",
+      "date": "2026-09-16",
+      "client_id": 1,
+      "supplier_info": {
+        "name": "Mahmoodiyah Packages",
+        "tagline": "DEAL IN ALL TYPES OF PACKAGING",
+        "address": "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+        "phone": "+92-323-4866931",
+        "email": "mahmoodiyah786@gmail.com",
+        "ntn": "1984936",
+        "strn": ""
+      },
+      "buyer_info": {
+        "name": "Robinson Pharma",
+        "address": "H # 194-B, BOR Society Masjid Chowk Johar Town, Lahore.",
+        "phone": "+92 42 35170405",
+        "ntn": "4483577",
+        "strn": ""
+      },
+      "items": [
+        {
+          "description": "Orex Plus 120ml Syrup batch # AI-353 Unit Carton",
+          "qty": 24550,
+          "price": 5.9,
+          "excl_tax": 144845,
+          "tax_rate": 18,
+          "sales_tax": 26072.1,
+          "incl_tax": 170917.1
+        }
+      ],
+      "total_excl_tax": 144845,
+      "total_sales_tax": 26072.1,
+      "total_incl_tax": 170917.1,
+      "notes": "",
+      "created_at": "2026-09-16T09:31:14.539Z"
+    },
+    {
+      "id": 3,
+      "invoice_no": "0001(1515)",
+      "po_no": "JOB-1001",
+      "date": "2026-09-16",
+      "client_id": 1,
+      "supplier_info": {
+        "name": "Mahmoodiyah Packages",
+        "tagline": "DEAL IN ALL TYPES OF PACKAGING",
+        "address": "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+        "phone": "+92-323-4866931",
+        "email": "mahmoodiyah786@gmail.com",
+        "ntn": "1984936",
+        "strn": ""
+      },
+      "buyer_info": {
+        "name": "Robinson Pharma",
+        "address": "H # 194-B, BOR Society Masjid Chowk Johar Town, Lahore.",
+        "phone": "+92 42 35170405",
+        "ntn": "4483577",
+        "strn": ""
+      },
+      "items": [
+        {
+          "description": "Orex plus syp 120ml Unit Carton",
+          "qty": 8700,
+          "price": 5.9,
+          "excl_tax": 51330,
+          "tax_rate": 18,
+          "sales_tax": 9239.4,
+          "incl_tax": 60569.4
+        }
+      ],
+      "total_excl_tax": 51330,
+      "total_sales_tax": 9239.4,
+      "total_incl_tax": 60569.4,
+      "notes": "",
+      "created_at": "2026-09-16T10:02:41.090Z"
+    },
+    {
+      "id": 4,
+      "invoice_no": "0001(1515)",
+      "po_no": "JOB-1001",
+      "date": "2026-09-16",
+      "client_id": 1,
+      "supplier_info": {
+        "name": "Mahmoodiyah Packages",
+        "tagline": "DEAL IN ALL TYPES OF PACKAGING",
+        "address": "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+        "phone": "+92-323-4866931",
+        "email": "mahmoodiyah786@gmail.com",
+        "ntn": "1984936",
+        "strn": ""
+      },
+      "buyer_info": {
+        "name": "Robinson Pharma",
+        "address": "H # 194-B, BOR Society Masjid Chowk Johar Town, Lahore.",
+        "phone": "+92 42 35170405",
+        "ntn": "4483577",
+        "strn": ""
+      },
+      "items": [
+        {
+          "description": "Orex plus syp 120ml Unit Carton",
+          "qty": 8700,
+          "price": 5.9,
+          "excl_tax": 51330,
+          "tax_rate": 18,
+          "sales_tax": 9239.4,
+          "incl_tax": 60569.4
+        }
+      ],
+      "total_excl_tax": 51330,
+      "total_sales_tax": 9239.4,
+      "total_incl_tax": 60569.4,
+      "notes": "",
+      "created_at": "2026-09-16T10:07:27.667Z"
+    },
+    {
+      "id": 5,
+      "invoice_no": "0001(1515)",
+      "po_no": "JOB-1001",
+      "date": "2026-09-16",
+      "client_id": 1,
+      "supplier_info": {
+        "name": "Mahmoodiyah Packages",
+        "tagline": "DEAL IN ALL TYPES OF PACKAGING",
+        "address": "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+        "phone": "+92-323-4866931",
+        "email": "mahmoodiyah786@gmail.com",
+        "ntn": "1984936",
+        "strn": ""
+      },
+      "buyer_info": {
+        "name": "Robinson Pharma",
+        "address": "H # 194-B, BOR Society Masjid Chowk Johar Town, Lahore.",
+        "phone": "+92 42 35170405",
+        "ntn": "4483577",
+        "strn": ""
+      },
+      "items": [
+        {
+          "description": "Orex plus syp 120ml Unit Carton",
+          "qty": 8700,
+          "price": 5.9,
+          "excl_tax": 51330,
+          "tax_rate": 18,
+          "sales_tax": 9239.4,
+          "incl_tax": 60569.4
+        }
+      ],
+      "total_excl_tax": 51330,
+      "total_sales_tax": 9239.4,
+      "total_incl_tax": 60569.4,
+      "notes": "",
+      "created_at": "2026-09-16T10:34:18.530Z"
+    },
+    {
+      "id": 6,
+      "invoice_no": "0001(1515)",
+      "po_no": "JOB-1001, JOB-1002",
+      "date": "2026-09-16",
+      "client_id": 1,
+      "supplier_info": {
+        "name": "Mahmoodiyah Packages",
+        "tagline": "DEAL IN ALL TYPES OF PACKAGING",
+        "address": "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+        "phone": "+92-323-4866931",
+        "email": "mahmoodiyah786@gmail.com",
+        "ntn": "1984936",
+        "strn": ""
+      },
+      "buyer_info": {
+        "name": "Robinson Pharma",
+        "address": "H # 194-B, BOR Society Masjid Chowk Johar Town, Lahore.",
+        "phone": "+92 42 35170405",
+        "ntn": "4483577",
+        "strn": ""
+      },
+      "items": [
+        {
+          "description": "Orex plus syp 120ml Unit Carton",
+          "qty": 8700,
+          "price": 5.9,
+          "excl_tax": 51330,
+          "tax_rate": 18,
+          "sales_tax": 9239.4,
+          "incl_tax": 60569.4
+        },
+        {
+          "description": "Orex plus syp 120ml label Bottle Labels",
+          "qty": 14500,
+          "price": 0.98,
+          "excl_tax": 14210,
+          "tax_rate": 18,
+          "sales_tax": 2557.8,
+          "incl_tax": 16767.8
+        }
+      ],
+      "total_excl_tax": 65540,
+      "total_sales_tax": 11797.2,
+      "total_incl_tax": 77337.2,
+      "notes": "",
+      "created_at": "2026-09-16T10:40:37.875Z"
+    },
+    {
+      "id": 7,
+      "invoice_no": "0001(1515)",
+      "po_no": "JOB-1001, JOB-1002",
+      "date": "2026-09-16",
+      "client_id": 1,
+      "supplier_info": {
+        "name": "Mahmoodiyah Packages",
+        "tagline": "DEAL IN ALL TYPES OF PACKAGING",
+        "address": "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+        "phone": "+92-323-4866931",
+        "email": "mahmoodiyah786@gmail.com",
+        "ntn": "1984936",
+        "strn": ""
+      },
+      "buyer_info": {
+        "name": "Robinson Pharma",
+        "address": "H # 194-B, BOR Society Masjid Chowk Johar Town, Lahore.",
+        "phone": "+92 42 35170405",
+        "ntn": "4483577",
+        "strn": ""
+      },
+      "items": [
+        {
+          "description": "Orex plus syp 120ml Unit Carton",
+          "qty": 8700,
+          "price": 5.9,
+          "excl_tax": 51330,
+          "tax_rate": 18,
+          "sales_tax": 9239.4,
+          "incl_tax": 60569.4
+        },
+        {
+          "description": "Orex plus syp 120ml label Bottle Labels",
+          "qty": 14500,
+          "price": 0.98,
+          "excl_tax": 14210,
+          "tax_rate": 18,
+          "sales_tax": 2557.8,
+          "incl_tax": 16767.8
+        }
+      ],
+      "total_excl_tax": 65540,
+      "total_sales_tax": 11797.2,
+      "total_incl_tax": 77337.2,
+      "notes": "",
+      "created_at": "2026-09-16T10:40:56.907Z"
     }
   ]
 }

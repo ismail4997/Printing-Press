@@ -1785,6 +1785,184 @@
 
   <!-- Application Script -->
   <script src="app.js?v=3"></script>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: CREATE / EDIT SALE TAX INVOICE -->
+  <!-- ============================================================ -->
+  <div class="modal-overlay" id="modal-tax-invoice">
+    <div class="modal-card" style="max-width: 950px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h3><i data-lucide="file-spreadsheet"></i> Create Sale Tax Invoice</h3>
+        <button class="modal-close" onclick="closeModal('modal-tax-invoice')">&times;</button>
+      </div>
+      <form id="form-tax-invoice" class="modal-body">
+        <input type="hidden" id="inv-client-id">
+        <input type="hidden" id="inv-id">
+
+        <!-- Top Meta Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 1rem;">
+          <div class="form-group">
+            <label>Serial No / Invoice #</label>
+            <input type="text" id="inv-serial-no" placeholder="e.g. 00016(1515)" required>
+          </div>
+          <div class="form-group">
+            <label>Invoice Date</label>
+            <input type="date" id="inv-date" required>
+          </div>
+          <div class="form-group">
+            <label>Customer PO #</label>
+            <input type="text" id="inv-po-no" placeholder="e.g. 1085" required>
+          </div>
+        </div>
+
+        <!-- Supplier & Buyer Two-Column Info -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; margin-bottom: 1.25rem;">
+          <div>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px;">Supplier (Your Company)</span>
+            <div style="font-size: 0.85rem; color: #f8fafc; font-weight: 600;" id="inv-supplier-name">Mahmoodiyah Packages</div>
+            <div style="font-size: 0.78rem; color: #94a3b8;" id="inv-supplier-address">Umer Park, Shahzad Street, Lahore Pakistan</div>
+            <div style="font-size: 0.78rem; color: #94a3b8;">NTN: <strong id="inv-supplier-ntn" style="color: #f8fafc;">1984936</strong> | Tel: <span id="inv-supplier-phone">+92-323-4866931</span></div>
+          </div>
+          <div>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #34d399; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px;">Buyer (Customer Details)</span>
+            <div class="form-group" style="margin-bottom: 6px;">
+              <input type="text" id="inv-buyer-name" placeholder="Customer Name (e.g. Robinson Pharma)" required style="padding: 0.4rem 0.6rem; font-size: 0.85rem;">
+            </div>
+            <div class="form-group" style="margin-bottom: 6px;">
+              <input type="text" id="inv-buyer-address" placeholder="Customer Address" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <input type="text" id="inv-buyer-phone" placeholder="Telephone" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;">
+              <input type="text" id="inv-buyer-ntn" placeholder="NTN #" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Line Items Section -->
+        <div style="margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label style="font-weight: 700; color: #f8fafc; margin: 0; font-size: 0.9rem;">Invoice Items (Description, Qty, Rate, Tax)</label>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addInvoiceItemRow()">
+              <i data-lucide="plus"></i> Add Item Row
+            </button>
+          </div>
+
+          <div class="table-container" style="max-height: 250px; overflow-y: auto;">
+            <table class="data-table" style="font-size: 0.82rem;">
+              <thead>
+                <tr>
+                  <th style="width: 32%;">Description of Goods</th>
+                  <th style="width: 12%;">Qty</th>
+                  <th style="width: 12%;">Price (Rs.)</th>
+                  <th style="width: 14%;">Excl-Tax</th>
+                  <th style="width: 10%;">Tax Rate</th>
+                  <th style="width: 14%;">Sales Tax</th>
+                  <th style="width: 6%;"></th>
+                </tr>
+              </thead>
+              <tbody id="invoice-items-body">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Summary Totals Calculation Box -->
+        <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(6,182,212,0.3); border-radius: 12px; padding: 14px; margin-bottom: 1.25rem;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; text-align: center;">
+            <div>
+              <span style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">Total Excl-Value</span>
+              <div id="inv-calc-excl" style="font-size: 1.15rem; font-weight: 700; color: #f8fafc;">Rs. 0.00</div>
+            </div>
+            <div>
+              <span style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">Sales Tax (18%)</span>
+              <div id="inv-calc-tax" style="font-size: 1.15rem; font-weight: 700; color: #38bdf8;">Rs. 0.00</div>
+            </div>
+            <div>
+              <span style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">Net S.Tax Inclusive</span>
+              <div id="inv-calc-incl" style="font-size: 1.3rem; font-weight: 800; color: #34d399;">Rs. 0.00</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-tax-invoice')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-tax-invoice">
+            <i data-lucide="check"></i> Save & Generate Invoice
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: A4 PRINTABLE INVOICE VIEW (EXACT REPLICA) -->
+  <!-- ============================================================ -->
+  <div class="modal-overlay" id="modal-tax-invoice-view">
+    <div class="modal-card" style="max-width: 900px; max-height: 95vh; overflow-y: auto; background: #1e293b; padding: 1.5rem;">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1rem; padding-bottom: 0.5rem;">
+        <h3><i data-lucide="printer"></i> Sale Tax Invoice Preview</h3>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-primary btn-sm" onclick="printCurrentTaxInvoice()">
+            <i data-lucide="printer"></i> Print / Save PDF
+          </button>
+          <button class="modal-close" onclick="closeModal('modal-tax-invoice-view')">&times;</button>
+        </div>
+      </div>
+
+      <!-- Printable A4 Document Sheet -->
+      <div id="printable-tax-invoice-sheet" class="printable-a4-sheet">
+        <!-- Injected via renderPrintableTaxInvoice() -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: COMPANY PROFILE SETTINGS -->
+  <!-- ============================================================ -->
+  <div class="modal-overlay" id="modal-company-profile">
+    <div class="modal-card" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3><i data-lucide="building"></i> Company Profile & Tax Details</h3>
+        <button class="modal-close" onclick="closeModal('modal-company-profile')">&times;</button>
+      </div>
+      <form id="form-company-profile" class="modal-body form-grid">
+        <div class="form-group full-width">
+          <label>Company / Supplier Name</label>
+          <input type="text" id="cp-name" value="Mahmoodiyah Packages" required>
+        </div>
+        <div class="form-group full-width">
+          <label>Tagline / Subtitle</label>
+          <input type="text" id="cp-tagline" value="DEAL IN ALL TYPES OF PACKAGING" required>
+        </div>
+        <div class="form-group full-width">
+          <label>Factory / Office Address</label>
+          <input type="text" id="cp-address" value="Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan" required>
+        </div>
+        <div class="form-group">
+          <label>Cell Number</label>
+          <input type="text" id="cp-phone" value="+92-323-4866931" required>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="cp-email" value="mahmoodiyah786@gmail.com" required>
+        </div>
+        <div class="form-group">
+          <label>N.T.N. #</label>
+          <input type="text" id="cp-ntn" value="1984936" required>
+        </div>
+        <div class="form-group">
+          <label>Sales Tax Reg. (STRN) #</label>
+          <input type="text" id="cp-strn" placeholder="Optional">
+        </div>
+        <div class="form-footer full-width">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-company-profile')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Company Profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 </body>
 </html>
 

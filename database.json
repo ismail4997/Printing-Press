@@ -10,7 +10,30 @@
       "created_at": "2026-09-07T08:12:40.605Z"
     }
   ],
-  "clients": [],
+  "clients": [
+    {
+      "id": 1,
+      "name": "Robinson Pharma",
+      "contact_person": "Procurement / Accounts",
+      "phone": "+92 42 35170405",
+      "address": "H # 194-B, BOR Society Masjid Chowk Johar Town, Lahore.",
+      "ntn": "4483577",
+      "strn": "",
+      "balance": 0,
+      "created_at": "2026-09-16T09:07:48.790Z"
+    },
+    {
+      "id": 2,
+      "name": "Mclosn Pharmaceuticals",
+      "contact_person": "Manager Accounts",
+      "phone": "+92 300 0000000",
+      "address": "Lahore, Pakistan",
+      "ntn": "",
+      "strn": "",
+      "balance": 0,
+      "created_at": "2026-09-16T09:07:48.790Z"
+    }
+  ],
   "inventory": [],
   "vendor_transactions": [],
   "vendor_bills": [],
@@ -32,7 +55,7 @@
       "received_date": null,
       "bill_id": null,
       "notes": "",
-      "created_at": "2026-09-16T08:40:39.385Z"
+      "created_at": "2026-09-16T08:45:31.448Z"
     }
   ],
   "client_transactions": [],
@@ -279,6 +302,65 @@
       "date": "2026-09-12",
       "description": "Electricity",
       "created_at": "2026-09-12T08:21:57.493Z"
+    }
+  ],
+  "company_profile": {
+    "name": "Mahmoodiyah Packages",
+    "tagline": "DEAL IN ALL TYPES OF PACKAGING",
+    "address": "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+    "phone": "+92-323-4866931",
+    "email": "mahmoodiyah786@gmail.com",
+    "ntn": "1984936",
+    "strn": ""
+  },
+  "tax_invoices": [
+    {
+      "id": 1,
+      "invoice_no": "00016(1515)",
+      "po_no": "1085",
+      "date": "2026-09-15",
+      "client_id": 1,
+      "supplier_info": {
+        "name": "Mahmoodiyah Packages",
+        "tagline": "DEAL IN ALL TYPES OF PACKAGING",
+        "address": "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+        "phone": "+92-323-4866931",
+        "email": "mahmoodiyah786@gmail.com",
+        "ntn": "1984936",
+        "strn": ""
+      },
+      "buyer_info": {
+        "name": "Robinson Pharma",
+        "address": "H # 194-B, BOR Society Masjid Chowk Johar Town, Lahore.",
+        "phone": "+92 42 35170405",
+        "ntn": "4483577",
+        "strn": ""
+      },
+      "items": [
+        {
+          "description": "Orex Plus 120ml Syrup batch # AI-353 Unit Carton",
+          "qty": 24550,
+          "price": 5.9,
+          "excl_tax": 144845,
+          "tax_rate": 18,
+          "sales_tax": 26072.1,
+          "incl_tax": 170917.1
+        },
+        {
+          "description": "Orex Plus 120ml Syrup batch # AI-353 Label",
+          "qty": 25780,
+          "price": 0.55,
+          "excl_tax": 14179,
+          "tax_rate": 18,
+          "sales_tax": 2552.22,
+          "incl_tax": 16731.22
+        }
+      ],
+      "total_excl_tax": 159024,
+      "total_sales_tax": 28624.32,
+      "total_incl_tax": 187648.32,
+      "notes": "",
+      "created_at": "2026-09-16T09:16:42.440Z"
     }
   ]
 }

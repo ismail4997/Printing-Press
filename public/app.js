@@ -95,6 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
     clients: [],
     jobs: [],
     client_products: [],
+    tax_invoices: [],
+    company_profile: null,
     employees: [],
     attendance: [],
     expenses: [],
@@ -226,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // -------------------------------------------------------------
   async function loadAllData() {
     try {
-      const [dashRes, invRes, venRes, cliRes, jobRes, poRes, clientProductsRes, empRes, attRes, expRes] = await Promise.all([
+      const [dashRes, invRes, venRes, cliRes, jobRes, poRes, clientProductsRes, empRes, attRes, expRes, taxInvoicesRes, companyProfileRes] = await Promise.all([
         fetch('/api/dashboard').then(r => r.json()),
         fetch('/api/inventory').then(r => r.json()),
         fetch('/api/vendors').then(r => r.json()),
@@ -249,6 +251,8 @@ document.addEventListener('DOMContentLoaded', () => {
       state.employees = empRes || [];
       state.attendance = attRes || [];
       state.expenses = expRes || [];
+      state.tax_invoices = taxInvoicesRes || [];
+      state.company_profile = companyProfileRes || null;
 
       if (state.vendors.length > 0 && !state.selectedVendor) {
         state.selectedVendor = state.vendors[0];
@@ -2940,6 +2944,509 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return _origFetch(url, opts);
   };
+
+  
+  // =============================================================
+  // SALE TAX INVOICES CONTROLLER (MEDICINE / ROBINSON / MCLOSN)
+  // =============================================================
+  
+  window.renderTaxInvoices = function(clientId) {
+    const tbody = document.getElementById('table-tax-invoices-body');
+    if (!tbody) return;
+
+    if (!clientId) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Select a customer from the left list</td></tr>';
+      return;
+    }
+
+    const invoices = (state.tax_invoices || []).filter(inv => inv.client_id === clientId);
+
+    if (invoices.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted" style="padding: 1.5rem;">No Sale Tax Invoices generated for this client yet. Click <strong>"Create Sale Tax Invoice"</strong> above.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = invoices.map(inv => {
+      const itemsSummary = (inv.items || []).map(i => `${i.description} (${Number(i.qty).toLocaleString()} @ Rs. ${i.price})`).join('<br>');
+      const dateFormatted = inv.date ? inv.date.split('-').reverse().join('-') : 'N/A';
+
+      return `
+        <tr>
+          <td><strong style="color: #38bdf8;">${inv.invoice_no || 'INV-' + inv.id}</strong></td>
+          <td>${dateFormatted}</td>
+          <td><span class="badge" style="background: rgba(255,255,255,0.08); font-weight:600;">${inv.po_no || 'N/A'}</span></td>
+          <td style="max-width: 250px; font-size: 0.8rem; line-height: 1.3;">${itemsSummary || 'No items'}</td>
+          <td class="text-right">Rs. ${Number(inv.total_excl_tax || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+          <td class="text-right" style="color: #38bdf8;">Rs. ${Number(inv.total_sales_tax || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+          <td class="text-right"><strong style="color: #34d399;">Rs. ${Number(inv.total_incl_tax || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</strong></td>
+          <td style="text-align: center; white-space: nowrap;">
+            <button class="btn btn-primary btn-sm" onclick="viewTaxInvoice(${inv.id})" title="Print / View A4 Invoice">
+              <i data-lucide="printer"></i> View & Print
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="deleteTaxInvoice(${inv.id})" style="color: #fb7185;" title="Delete Invoice">
+              <i data-lucide="trash-2"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    if (window.lucide) { window.lucide.createIcons(); }
+  };
+
+  window.openCreateTaxInvoiceModal = function() {
+    const client = state.selectedClient;
+    if (!client) {
+      showToast('Select Customer', 'Please select a customer first before creating an invoice.', 'warning');
+      return;
+    }
+
+    const company = state.company_profile || {
+      name: "Mahmoodiyah Packages",
+      address: "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+      phone: "+92-323-4866931",
+      email: "mahmoodiyah786@gmail.com",
+      ntn: "1984936",
+      strn: ""
+    };
+
+    document.getElementById('inv-client-id').value = client.id;
+    document.getElementById('inv-id').value = '';
+
+    const invCount = (state.tax_invoices?.length || 0) + 1;
+    document.getElementById('inv-serial-no').value = `000${invCount}(1515)`;
+    document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('inv-po-no').value = '';
+
+    // Supplier Info
+    document.getElementById('inv-supplier-name').textContent = company.name;
+    document.getElementById('inv-supplier-address').textContent = company.address;
+    document.getElementById('inv-supplier-ntn').textContent = company.ntn || '1984936';
+    document.getElementById('inv-supplier-phone').textContent = company.phone || '+92-323-4866931';
+
+    // Buyer Info
+    document.getElementById('inv-buyer-name').value = client.name || '';
+    document.getElementById('inv-buyer-address').value = client.address || '';
+    document.getElementById('inv-buyer-phone').value = client.phone || '';
+    document.getElementById('inv-buyer-ntn').value = client.ntn || '';
+
+    // Clear and populate 2 default item rows
+    const tbody = document.getElementById('invoice-items-body');
+    tbody.innerHTML = '';
+
+    if (client.name.toLowerCase().includes('robinson')) {
+      addInvoiceItemRow({ description: "Orex Plus 120ml Syrup batch # AI-353 Unit Carton", qty: 24550, price: 5.90, tax_rate: 18 });
+      addInvoiceItemRow({ description: "Orex Plus 120ml Syrup batch # AI-353 Label", qty: 25780, price: 0.55, tax_rate: 18 });
+    } else {
+      addInvoiceItemRow({ description: "", qty: 1000, price: 0, tax_rate: 18 });
+    }
+
+    calcTaxInvoiceLiveTotals();
+    openModal('modal-tax-invoice');
+    if (window.lucide) { window.lucide.createIcons(); }
+  };
+
+  window.addInvoiceItemRow = function(item = {}) {
+    const tbody = document.getElementById('invoice-items-body');
+    const tr = document.createElement('tr');
+    tr.className = 'inv-item-row';
+
+    const desc = item.description || '';
+    const qty = item.qty !== undefined ? item.qty : '';
+    const price = item.price !== undefined ? item.price : '';
+    const taxRate = item.tax_rate !== undefined ? item.tax_rate : 18;
+
+    tr.innerHTML = `
+      <td><input type="text" class="inv-item-desc" value="${desc}" placeholder="e.g. Unit Carton / Label" required style="padding: 0.35rem 0.5rem;"></td>
+      <td><input type="number" step="any" class="inv-item-qty" value="${qty}" placeholder="Qty" required oninput="calcTaxInvoiceLiveTotals()" style="padding: 0.35rem 0.5rem; text-align: right;"></td>
+      <td><input type="number" step="any" class="inv-item-price" value="${price}" placeholder="Rate" required oninput="calcTaxInvoiceLiveTotals()" style="padding: 0.35rem 0.5rem; text-align: right;"></td>
+      <td class="inv-row-excl" style="font-weight: 600; text-align: right;">Rs. 0.00</td>
+      <td><input type="number" step="any" class="inv-item-taxrate" value="${taxRate}" placeholder="18" oninput="calcTaxInvoiceLiveTotals()" style="padding: 0.35rem 0.5rem; width: 60px; text-align: right;">%</td>
+      <td class="inv-row-tax" style="color: #38bdf8; text-align: right;">Rs. 0.00</td>
+      <td style="text-align: center;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="this.closest('tr').remove(); calcTaxInvoiceLiveTotals();" style="padding: 0.2rem 0.45rem; color: #fb7185;">&times;</button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+    calcTaxInvoiceLiveTotals();
+  };
+
+  window.calcTaxInvoiceLiveTotals = function() {
+    const rows = document.querySelectorAll('.inv-item-row');
+    let totalExcl = 0;
+    let totalTax = 0;
+    let totalIncl = 0;
+
+    rows.forEach(row => {
+      const qty = parseFloat(row.querySelector('.inv-item-qty')?.value) || 0;
+      const price = parseFloat(row.querySelector('.inv-item-price')?.value) || 0;
+      const taxRate = parseFloat(row.querySelector('.inv-item-taxrate')?.value) !== undefined ? parseFloat(row.querySelector('.inv-item-taxrate')?.value) : 18;
+
+      const excl = qty * price;
+      const tax = excl * (taxRate / 100);
+      const incl = excl + tax;
+
+      const exclCell = row.querySelector('.inv-row-excl');
+      const taxCell = row.querySelector('.inv-row-tax');
+
+      if (exclCell) exclCell.textContent = 'Rs. ' + Number(excl.toFixed(2)).toLocaleString(undefined, {minimumFractionDigits: 2});
+      if (taxCell) taxCell.textContent = 'Rs. ' + Number(tax.toFixed(2)).toLocaleString(undefined, {minimumFractionDigits: 2});
+
+      totalExcl += excl;
+      totalTax += tax;
+      totalIncl += incl;
+    });
+
+    document.getElementById('inv-calc-excl').textContent = 'Rs. ' + Number(totalExcl.toFixed(2)).toLocaleString(undefined, {minimumFractionDigits: 2});
+    document.getElementById('inv-calc-tax').textContent = 'Rs. ' + Number(totalTax.toFixed(2)).toLocaleString(undefined, {minimumFractionDigits: 2});
+    document.getElementById('inv-calc-incl').textContent = 'Rs. ' + Number(totalIncl.toFixed(2)).toLocaleString(undefined, {minimumFractionDigits: 2});
+  };
+
+  // Form submit handler for Tax Invoice
+  const formTaxInvoice = document.getElementById('form-tax-invoice');
+  if (formTaxInvoice) {
+    formTaxInvoice.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const clientId = document.getElementById('inv-client-id').value;
+      const serialNo = document.getElementById('inv-serial-no').value.trim();
+      const date = document.getElementById('inv-date').value;
+      const poNo = document.getElementById('inv-po-no').value.trim();
+
+      const buyerName = document.getElementById('inv-buyer-name').value.trim();
+      const buyerAddress = document.getElementById('inv-buyer-address').value.trim();
+      const buyerPhone = document.getElementById('inv-buyer-phone').value.trim();
+      const buyerNtn = document.getElementById('inv-buyer-ntn').value.trim();
+
+      const rows = document.querySelectorAll('.inv-item-row');
+      const items = [];
+
+      rows.forEach(row => {
+        const desc = row.querySelector('.inv-item-desc').value.trim();
+        const qty = parseFloat(row.querySelector('.inv-item-qty').value) || 0;
+        const price = parseFloat(row.querySelector('.inv-item-price').value) || 0;
+        const taxRate = parseFloat(row.querySelector('.inv-item-taxrate').value) || 18;
+
+        if (desc) {
+          items.push({ description: desc, qty, price, tax_rate: taxRate });
+        }
+      });
+
+      if (items.length === 0) {
+        showToast('No Items', 'Please add at least one item to the invoice.', 'warning');
+        return;
+      }
+
+      const payload = {
+        client_id: clientId,
+        serial_no: serialNo,
+        date: date,
+        po_no: poNo,
+        buyer_name: buyerName,
+        buyer_address: buyerAddress,
+        buyer_phone: buyerPhone,
+        buyer_ntn: buyerNtn,
+        items: items
+      };
+
+      try {
+        const res = await fetch('/api/tax-invoices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to create invoice');
+
+        closeModal('modal-tax-invoice');
+        showToast('Success', 'Sale Tax Invoice created successfully!', 'success');
+        await loadAllData();
+        if (state.selectedClient) {
+          renderTaxInvoices(state.selectedClient.id);
+        }
+        // Automatically open A4 printable preview
+        if (data.invoice && data.invoice.id) {
+          viewTaxInvoice(data.invoice.id);
+        }
+      } catch (err) {
+        showToast('Error', err.message, 'error');
+      }
+    });
+  }
+
+  // View / Print A4 Invoice
+  window.viewTaxInvoice = function(invId) {
+    const inv = (state.tax_invoices || []).find(i => i.id === invId);
+    if (!inv) {
+      showToast('Error', 'Invoice not found', 'error');
+      return;
+    }
+
+    const supplier = inv.supplier_info || {
+      name: "Mahmoodiyah Packages",
+      tagline: "DEAL IN ALL TYPES OF PACKAGING",
+      address: "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+      phone: "+92-323-4866931",
+      email: "mahmoodiyah786@gmail.com",
+      ntn: "1984936",
+      strn: ""
+    };
+
+    const buyer = inv.buyer_info || {
+      name: inv.client_name || "Customer",
+      address: "",
+      phone: "",
+      ntn: "",
+      strn: ""
+    };
+
+    const dateFormatted = inv.date ? inv.date.split('-').reverse().join('-') : '15-09-2026';
+
+    const itemsRowsHtml = (inv.items || []).map(item => {
+      return `
+        <tr>
+          <td style="text-align: left; padding: 8px 10px;">${item.description}</td>
+          <td class="text-right" style="padding: 8px 10px;">${Number(item.qty).toLocaleString()}</td>
+          <td class="text-right" style="padding: 8px 10px;">${Number(item.price).toFixed(2)}</td>
+          <td class="text-right" style="padding: 8px 10px; font-weight:600;">${Number(item.excl_tax).toLocaleString(undefined, {minimumFractionDigits: 1})}</td>
+          <td class="text-center" style="padding: 8px 10px;">${item.tax_rate}%</td>
+          <td class="text-right" style="padding: 8px 10px;">${Number(item.sales_tax).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+          <td class="text-right" style="padding: 8px 10px; font-weight:700;">${Number(item.incl_tax).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+        </tr>
+      `;
+    }).join('');
+
+    // Ensure at least 4 rows for clean A4 table height
+    let emptyRowsHtml = '';
+    const emptyRowsCount = Math.max(0, 4 - (inv.items?.length || 0));
+    for (let i = 0; i < emptyRowsCount; i++) {
+      emptyRowsHtml += `
+        <tr>
+          <td style="height: 28px;">&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+        </tr>
+      `;
+    }
+
+    const sheetContainer = document.getElementById('printable-tax-invoice-sheet');
+    sheetContainer.innerHTML = `
+      <!-- HEADER -->
+      <div class="inv-header-container">
+        <div class="inv-brand-left">
+          <div class="inv-brand-logo-icon">M</div>
+          <div class="inv-brand-titles">
+            <h1>${supplier.name}</h1>
+            <div class="inv-brand-tagline-pill">${supplier.tagline || 'DEAL IN ALL TYPES OF PACKAGING'}</div>
+            <div class="inv-brand-address">${supplier.address}</div>
+          </div>
+        </div>
+        <div class="inv-header-right">
+          <div class="inv-header-right-accent"></div>
+          <div><strong>Cell:</strong> ${supplier.phone || '0323-4866931'}</div>
+          <div><strong>E-mail:</strong> ${supplier.email || 'mahmoodiyah786@gmail.com'}</div>
+        </div>
+      </div>
+
+      <!-- TITLE BADGE -->
+      <div class="inv-title-badge-wrapper">
+        <div class="inv-title-badge">SALE TAX INVOICE</div>
+      </div>
+
+      <!-- META ROW -->
+      <div class="inv-meta-row">
+        <div class="inv-meta-item">Serial No: <span class="inv-meta-val">${inv.invoice_no}</span></div>
+        <div class="inv-meta-item">Date: <span class="inv-meta-val">${dateFormatted}</span></div>
+        <div class="inv-meta-item">PO #: <span class="inv-meta-val">${inv.po_no || '---'}</span></div>
+      </div>
+
+      <!-- TWO COLUMN SUPPLIER / BUYER BOX -->
+      <div class="inv-two-col-grid">
+        <!-- Supplier Column -->
+        <div>
+          <div class="inv-col-field">
+            <span class="inv-col-lbl">Supplier's Name:</span>
+            <span class="inv-col-val">${supplier.name}</span>
+          </div>
+          <div class="inv-col-field">
+            <span class="inv-col-lbl">Address:</span>
+            <span class="inv-col-val" style="font-size: 9.5px;">${supplier.address}</span>
+          </div>
+          <div class="inv-col-field">
+            <span class="inv-col-lbl">Telephone:</span>
+            <span class="inv-col-val">${supplier.phone}</span>
+          </div>
+          <div class="inv-col-field">
+            <span class="inv-col-lbl">S.Tax Reg. #:</span>
+            <span class="inv-col-val">${supplier.strn || ''}</span>
+          </div>
+          <div class="inv-col-field">
+            <span class="inv-col-lbl">N.T.N.#:</span>
+            <span class="inv-col-val" style="font-weight:700;">${supplier.ntn || '1984936'}</span>
+          </div>
+        </div>
+
+        <!-- Buyer Column -->
+        <div>
+          <div class="inv-col-field">
+            <span class="inv-col-lbl">Buyer's Name:</span>
+            <span class="inv-col-val" style="font-weight:700;">${buyer.name}</span>
+          </div>
+          <div class="inv-col-field">
+            <span class="inv-col-lbl">Address:</span>
+            <span class="inv-col-val" style="font-size: 9.5px;">${buyer.address || ''}</span>
+          </div>
+          <div class="inv-col-field">
+            <span class="inv-col-lbl">Telephone:</span>
+            <span class="inv-col-val">${buyer.phone || ''}</span>
+          </div>
+          <div class="inv-col-field">
+            <span class="inv-col-lbl">S.Tax Reg. #:</span>
+            <span class="inv-col-val">${buyer.strn || ''}</span>
+          </div>
+          <div class="inv-col-field">
+            <span class="inv-col-lbl">N.T.N.#:</span>
+            <span class="inv-col-val" style="font-weight:700;">${buyer.ntn || ''}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE OF GOODS -->
+      <table class="inv-table-goods">
+        <thead>
+          <tr>
+            <th style="width: 36%;">Description of Goods</th>
+            <th style="width: 10%;">Qty</th>
+            <th style="width: 10%;">Price</th>
+            <th style="width: 14%;">Excl-value<br>Sales Tax</th>
+            <th style="width: 8%;">Rate<br>Sales Tax</th>
+            <th style="width: 11%;">Sales Tax<br>Payable</th>
+            <th style="width: 11%;">Incl-value<br>Sales Tax</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsRowsHtml}
+          ${emptyRowsHtml}
+          <tr class="inv-table-totals-row">
+            <td colspan="3" style="text-align: right; border-right: none;"></td>
+            <td class="text-right" style="font-weight: 800; font-size: 11px;">${Number(inv.total_excl_tax || 0).toLocaleString(undefined, {minimumFractionDigits: 1})}</td>
+            <td class="text-center"></td>
+            <td class="text-right" style="font-weight: 800; font-size: 11px;">${Number(inv.total_sales_tax || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+            <td class="text-right" style="font-weight: 900; font-size: 11.5px; color: #1e3a8a;">${Number(inv.total_incl_tax || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- BOTTOM SUMMARY & SIGNATURES -->
+      <div class="inv-bottom-section">
+        <div class="inv-bottom-left">
+          <div class="inv-summary-line">
+            <span>Sales Tax</span>
+            <span class="sum-val">${Number(inv.total_sales_tax || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+          </div>
+          <div class="inv-summary-line" style="margin-top: 14px;">
+            <span>Net S.tax inclusive</span>
+            <span class="sum-val" style="font-size: 14px; font-weight: 800;">${Number(inv.total_incl_tax || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+          </div>
+        </div>
+
+        <div class="inv-bottom-right">
+          <div class="inv-signature-block">
+            <div style="text-align: right; margin-right: 15px;">
+              <div style="font-size: 11px; font-weight: 700; margin-bottom: 25px;">Signature: ______________</div>
+              <div style="font-size: 11px; font-weight: 700;">Stamp: __________________</div>
+            </div>
+            <div class="inv-stamp-circle">
+              <span style="font-size: 6.5px; font-weight: 900; letter-spacing: 0.05em;">MAHMOODIYAH</span>
+              <span style="font-size: 10px; font-weight: 900;">M</span>
+              <span style="font-size: 6px;">PACKAGES</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    openModal('modal-tax-invoice-view');
+  };
+
+  window.printCurrentTaxInvoice = function() {
+    window.print();
+  };
+
+  window.deleteTaxInvoice = async function(invId) {
+    if (!confirm('Are you sure you want to delete this Sale Tax Invoice?')) return;
+    try {
+      const res = await fetch(`/api/tax-invoices/${invId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete invoice');
+      showToast('Deleted', 'Sale Tax Invoice deleted', 'info');
+      await loadAllData();
+      if (state.selectedClient) {
+        renderTaxInvoices(state.selectedClient.id);
+      }
+    } catch (err) {
+      showToast('Error', err.message, 'error');
+    }
+  };
+
+  // Company Profile Modal
+  window.openCompanyProfileModal = function() {
+    const cp = state.company_profile || {
+      name: "Mahmoodiyah Packages",
+      tagline: "DEAL IN ALL TYPES OF PACKAGING",
+      address: "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+      phone: "+92-323-4866931",
+      email: "mahmoodiyah786@gmail.com",
+      ntn: "1984936",
+      strn: ""
+    };
+
+    document.getElementById('cp-name').value = cp.name || '';
+    document.getElementById('cp-tagline').value = cp.tagline || '';
+    document.getElementById('cp-address').value = cp.address || '';
+    document.getElementById('cp-phone').value = cp.phone || '';
+    document.getElementById('cp-email').value = cp.email || '';
+    document.getElementById('cp-ntn').value = cp.ntn || '';
+    document.getElementById('cp-strn').value = cp.strn || '';
+
+    openModal('modal-company-profile');
+  };
+
+  const formCompanyProfile = document.getElementById('form-company-profile');
+  if (formCompanyProfile) {
+    formCompanyProfile.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('cp-name').value.trim(),
+        tagline: document.getElementById('cp-tagline').value.trim(),
+        address: document.getElementById('cp-address').value.trim(),
+        phone: document.getElementById('cp-phone').value.trim(),
+        email: document.getElementById('cp-email').value.trim(),
+        ntn: document.getElementById('cp-ntn').value.trim(),
+        strn: document.getElementById('cp-strn').value.trim()
+      };
+
+      try {
+        const res = await fetch('/api/company-profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to update company profile');
+        state.company_profile = data.profile;
+        closeModal('modal-company-profile');
+        showToast('Saved', 'Company Profile and Tax details saved!', 'success');
+      } catch (err) {
+        showToast('Error', err.message, 'error');
+      }
+    });
+  }
+
 
   // Start application with authentication check
   checkAuth().then(authed => {

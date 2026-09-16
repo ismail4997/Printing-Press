@@ -29,7 +29,17 @@ const initialData = {
   employees: [],
   attendance: [],
   salaries: [],
-  expenses: []
+  expenses: [],
+  tax_invoices: [],
+  company_profile: {
+    name: "Mahmoodiyah Packages",
+    tagline: "DEAL IN ALL TYPES OF PACKAGING",
+    address: "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+    phone: "+92-323-4866931",
+    email: "mahmoodiyah786@gmail.com",
+    ntn: "1984936",
+    strn: ""
+  }
 };
 
 class Database {
@@ -88,7 +98,7 @@ class Database {
 
     const collections = [
       'vendor_bills', 'purchase_orders', 'client_products',
-      'employees', 'attendance', 'salaries', 'expenses',
+      'employees', 'attendance', 'salaries', 'expenses', 'tax_invoices',
       'vendors', 'clients', 'inventory', 'jobs', 'machines'
     ];
 
@@ -103,6 +113,18 @@ class Database {
           dirty = true;
         }
       }
+    }
+    if (!this.data.company_profile) {
+      this.data.company_profile = {
+        name: "Mahmoodiyah Packages",
+        tagline: "DEAL IN ALL TYPES OF PACKAGING",
+        address: "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+        phone: "+92-323-4866931",
+        email: "mahmoodiyah786@gmail.com",
+        ntn: "1984936",
+        strn: ""
+      };
+      dirty = true;
     }
     if (dirty) this.save();
   }

@@ -1650,6 +1650,163 @@ const server = http.createServer(async (req, res) => {
     }
 
     // -------------------------------------------------------------
+    // -- CLIENT UPDATE ---------------------------------------------
+    const editClientMatch = pathname.match(/^\/api\/clients\/(\d+)$/);
+    if (editClientMatch && method === 'PUT') {
+      const clientId = parseInt(editClientMatch[1]);
+      const client = (db.data.clients || []).find(c => c.id === clientId);
+      if (!client) return sendJSON(res, { error: 'Client not found' }, 404);
+
+      const body = await parseBody(req);
+      if (body.name) client.name = body.name;
+      if (body.company !== undefined) client.company = body.company;
+      if (body.phone !== undefined) client.phone = body.phone;
+      if (body.address !== undefined) client.address = body.address;
+      if (body.ntn !== undefined) client.ntn = body.ntn;
+      if (body.strn !== undefined) client.strn = body.strn;
+      db.save();
+      return sendJSON(res, { message: 'Client updated', client });
+    }
+
+    // -- COMPANY PROFILE -------------------------------------------
+    if (pathname === '/api/company-profile' && method === 'GET') {
+      return sendJSON(res, db.data.company_profile || {
+        name: "Mahmoodiyah Packages",
+        tagline: "DEAL IN ALL TYPES OF PACKAGING",
+        address: "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+        phone: "+92-323-4866931",
+        email: "mahmoodiyah786@gmail.com",
+        ntn: "1984936",
+        strn: ""
+      });
+    }
+
+    if (pathname === '/api/company-profile' && method === 'PUT') {
+      if (!requireHR(req, res)) return;
+      const body = await parseBody(req);
+      db.data.company_profile = {
+        ...(db.data.company_profile || {}),
+        ...body
+      };
+      db.save();
+      return sendJSON(res, { message: 'Company profile updated', profile: db.data.company_profile });
+    }
+
+    // -- SALE TAX INVOICES -----------------------------------------
+    if (pathname === '/api/tax-invoices' && method === 'GET') {
+      let invoices = [...(db.data.tax_invoices || [])];
+      const clientId = parsedUrl.query?.client_id;
+      if (clientId) {
+        invoices = invoices.filter(inv => inv.client_id === parseInt(clientId));
+      }
+      invoices = invoices.map(inv => {
+        const client = (db.data.clients || []).find(c => c.id === inv.client_id);
+        return { ...inv, client_name: client ? client.name : (inv.buyer_info?.name || 'Unknown') };
+      });
+      invoices.sort((a, b) => (b.id || 0) - (a.id || 0));
+      return sendJSON(res, invoices);
+    }
+
+    if (pathname === '/api/tax-invoices' && method === 'POST') {
+      const body = await parseBody(req);
+      const clientId = parseInt(body.client_id);
+      const client = (db.data.clients || []).find(c => c.id === clientId);
+
+      if (client) {
+        if (body.buyer_address && !client.address) client.address = body.buyer_address;
+        if (body.buyer_ntn && !client.ntn) client.ntn = body.buyer_ntn;
+        if (body.buyer_phone && !client.phone) client.phone = body.buyer_phone;
+      }
+      
+      const supplierInfo = db.data.company_profile || {
+        name: "Mahmoodiyah Packages",
+        tagline: "DEAL IN ALL TYPES OF PACKAGING",
+        address: "Umer Park, Shahzad Street, Near Bajwa Shadi Hall, Amjad Bilu Road, Lahore Pakistan",
+        phone: "+92-323-4866931",
+        email: "mahmoodiyah786@gmail.com",
+        ntn: "1984936",
+        strn: ""
+      };
+
+      const buyerInfo = {
+        name: body.buyer_name || (client ? client.name : 'Unknown Customer'),
+        address: body.buyer_address || (client ? client.address : ''),
+        phone: body.buyer_phone || (client ? client.phone : ''),
+        ntn: body.buyer_ntn || (client ? client.ntn : ''),
+        strn: body.buyer_strn || (client ? client.strn : '')
+      };
+
+      const rawItems = Array.isArray(body.items) ? body.items : [];
+      let totalExcl = 0;
+      let totalTax = 0;
+      let totalIncl = 0;
+
+      const items = rawItems.map(item => {
+        const qty = parseFloat(item.qty) || 0;
+        const price = parseFloat(item.price) || 0;
+        const taxRate = parseFloat(item.tax_rate) !== undefined ? parseFloat(item.tax_rate) : 18;
+        const exclVal = Math.round(qty * price * 100) / 100;
+        const salesTax = Math.round(exclVal * (taxRate / 100) * 100) / 100;
+        const inclVal = Math.round((exclVal + salesTax) * 100) / 100;
+
+        totalExcl += exclVal;
+        totalTax += salesTax;
+        totalIncl += inclVal;
+
+        return {
+          description: item.description || '',
+          qty: qty,
+          price: price,
+          excl_tax: exclVal,
+          tax_rate: taxRate,
+          sales_tax: salesTax,
+          incl_tax: inclVal
+        };
+      });
+
+      const nextInvId = db.getNextId('tax_invoices');
+      const serialNo = body.serial_no || (body.invoice_no ? body.invoice_no : `000${nextInvId}(1515)`);
+
+      const newInvoice = {
+        id: nextInvId,
+        invoice_no: serialNo,
+        po_no: body.po_no || '',
+        date: body.date || new Date().toISOString().split('T')[0],
+        client_id: clientId || null,
+        supplier_info: supplierInfo,
+        buyer_info: buyerInfo,
+        items: items,
+        total_excl_tax: Math.round(totalExcl * 100) / 100,
+        total_sales_tax: Math.round(totalTax * 100) / 100,
+        total_incl_tax: Math.round(totalIncl * 100) / 100,
+        notes: body.notes || '',
+        created_at: new Date().toISOString()
+      };
+
+      if (!db.data.tax_invoices) db.data.tax_invoices = [];
+      db.data.tax_invoices.push(newInvoice);
+      db.save();
+
+      return sendJSON(res, { message: 'Sale Tax Invoice created successfully', invoice: newInvoice });
+    }
+
+    const singleTaxInvoiceMatch = pathname.match(/^\/api\/tax-invoices\/(\d+)$/);
+    if (singleTaxInvoiceMatch && method === 'GET') {
+      const invId = parseInt(singleTaxInvoiceMatch[1]);
+      const inv = (db.data.tax_invoices || []).find(i => i.id === invId);
+      if (!inv) return sendJSON(res, { error: 'Invoice not found' }, 404);
+      return sendJSON(res, inv);
+    }
+
+    if (singleTaxInvoiceMatch && method === 'DELETE') {
+      const invId = parseInt(singleTaxInvoiceMatch[1]);
+      const idx = (db.data.tax_invoices || []).findIndex(i => i.id === invId);
+      if (idx === -1) return sendJSON(res, { error: 'Invoice not found' }, 404);
+      db.data.tax_invoices.splice(idx, 1);
+      db.save();
+      return sendJSON(res, { message: 'Tax Invoice deleted' });
+    }
+
     // STATIC FRONTEND SERVING
     // -------------------------------------------------------------
     return serveStaticFile(req, res, pathname);

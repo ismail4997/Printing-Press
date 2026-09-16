@@ -3006,7 +3006,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) { window.lucide.createIcons(); }
   };
 
-  window.openCreateTaxInvoiceModal = function() {
+  window.openCreateTaxInvoiceModal = function(defaultItems = null) {
     const client = state.selectedClient;
     if (!client) {
       showToast('Select Customer', 'Please select a customer first before creating an invoice.', 'warning');
@@ -3042,15 +3042,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('inv-buyer-phone').value = client.phone || '';
     document.getElementById('inv-buyer-ntn').value = client.ntn || '';
 
-    // Clear and populate 2 default item rows
+    // Clear and populate item rows
     const tbody = document.getElementById('invoice-items-body');
     tbody.innerHTML = '';
 
-    if (client.name.toLowerCase().includes('robinson')) {
-      addInvoiceItemRow({ description: "Orex Plus 120ml Syrup batch # AI-353 Unit Carton", qty: 24550, price: 5.90, tax_rate: 18 });
-      addInvoiceItemRow({ description: "Orex Plus 120ml Syrup batch # AI-353 Label", qty: 25780, price: 0.55, tax_rate: 18 });
+    if (defaultItems && Array.isArray(defaultItems) && defaultItems.length > 0) {
+      defaultItems.forEach(item => addInvoiceItemRow(item));
     } else {
-      addInvoiceItemRow({ description: "", qty: 1000, price: 0, tax_rate: 18 });
+      const clientProds = (state.client_products || []).filter(p => p.client_id === client.id);
+      if (clientProds.length > 0) {
+        clientProds.forEach(p => {
+          addInvoiceItemRow({
+            description: `${p.name} Unit Carton`,
+            qty: 1000,
+            price: p.rate || 5.90,
+            tax_rate: 18
+          });
+        });
+      } else {
+        addInvoiceItemRow({ description: "Pharmaceutical Packaging / Unit Carton", qty: 1000, price: 5.90, tax_rate: 18 });
+      }
     }
 
     calcTaxInvoiceLiveTotals();
@@ -3481,27 +3492,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   window.openTaxInvoiceForJob = function(jobNo, clientId, totalAmount, desc) {
-    // Check if an invoice already exists for this client or create one from job details
-    const existing = (state.tax_invoices || []).find(i => i.client_id === clientId && i.po_no === jobNo);
-    if (existing) {
-      viewTaxInvoice(existing.id);
-      return;
-    }
-
-    // Otherwise open create modal pre-filled with this job!
-    openCreateTaxInvoiceModal();
-    if (jobNo) document.getElementById('inv-po-no').value = jobNo;
-
-    // Parse description like "Delivered 8700 boxes of Orex plus syp 120ml @ Rs. 5.90/box"
-    const tbody = document.getElementById('invoice-items-body');
-    tbody.innerHTML = '';
-
     let qty = 1000;
     let rate = 5.90;
-    let title = desc;
+    let title = "Unit Carton / Packaging";
 
-    const qtyMatch = desc.match(/Delivered\s+(\d+)\s+boxes/i);
-    if (qtyMatch) qty = parseFloat(qtyMatch[1]);
+    const qtyMatch = desc.match(/Delivered\s+([\d,]+)\s+boxes/i);
+    if (qtyMatch) qty = parseFloat(qtyMatch[1].replace(/,/g, ''));
 
     const rateMatch = desc.match(/@\s*Rs\.?\s*([\d.]+)/i);
     if (rateMatch) rate = parseFloat(rateMatch[1]);
@@ -3509,14 +3505,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const titleMatch = desc.match(/boxes of\s+(.*?)(?:@|$)/i);
     if (titleMatch) title = titleMatch[1].trim() + " Unit Carton";
 
-    addInvoiceItemRow({
-      description: title || "Pharmaceutical Unit Carton / Packaging",
+    const items = [{
+      description: title,
       qty: qty,
       price: rate,
       tax_rate: 18
-    });
+    }];
 
-    calcTaxInvoiceLiveTotals();
+    openCreateTaxInvoiceModal(items);
+    if (jobNo) document.getElementById('inv-po-no').value = jobNo;
   };
 
   window.printCustomerStatement = function() {

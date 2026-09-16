@@ -3188,9 +3188,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.selectedClient) {
           renderTaxInvoices(state.selectedClient.id);
         }
-        // Automatically open A4 printable preview
-        if (data.invoice && data.invoice.id) {
-          viewTaxInvoice(data.invoice.id);
+        // Automatically open A4 printable preview immediately with created invoice
+        if (data.invoice) {
+          viewTaxInvoice(data.invoice);
         }
       } catch (err) {
         showToast('Error', err.message, 'error');
@@ -3199,8 +3199,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // View / Print A4 Invoice
-  window.viewTaxInvoice = function(invId) {
-    const inv = (state.tax_invoices || []).find(i => i.id === invId);
+  window.viewTaxInvoice = function(invOrId) {
+    let inv = null;
+    if (typeof invOrId === 'object' && invOrId !== null) {
+      inv = invOrId;
+    } else {
+      inv = (state.tax_invoices || []).find(i => i.id == invOrId || i.invoice_no == invOrId);
+    }
+
     if (!inv) {
       showToast('Error', 'Invoice not found', 'error');
       return;

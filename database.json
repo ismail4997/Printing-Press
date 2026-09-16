@@ -14,7 +14,27 @@
   "inventory": [],
   "vendor_transactions": [],
   "vendor_bills": [],
-  "purchase_orders": [],
+  "purchase_orders": [
+    {
+      "id": 1,
+      "order_no": "PO-1001",
+      "vendor_id": 1,
+      "date": "2026-09-16",
+      "paper_type": "Bleach Card",
+      "gsm": 300,
+      "size_w": 25,
+      "size_h": 36,
+      "ordered_pkts": 20,
+      "rate_per_kg": 318,
+      "estimated_total": 110787,
+      "status": "ordered",
+      "received_pkts": 0,
+      "received_date": null,
+      "bill_id": null,
+      "notes": "",
+      "created_at": "2026-09-16T08:40:39.385Z"
+    }
+  ],
   "client_transactions": [],
   "jobs": [],
   "machines": [],

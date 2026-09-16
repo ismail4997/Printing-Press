@@ -106,7 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // -------------------------------------------------------------
   // INITIALIZATION & EVENT LISTENERS
   // -------------------------------------------------------------
+  let isInitialized = false;
   function init() {
+    if (isInitialized) return;
+    isInitialized = true;
     setupTabNavigation();
     setupFormListeners();
     setupSearchFilters();
@@ -2317,11 +2320,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById(modalId);
     if (modal) modal.classList.remove('active');
   };
-
-  // Start application
-  init();
-
-  
 
   // =============================================================
   // HR & PAYROLL LOGIC

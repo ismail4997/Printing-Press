@@ -2751,7 +2751,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
         
-        row += `<td class="${colClass}" title="${dateStr} - ${emp.name}" style="text-align: center; padding: 0.3rem 0.1rem; border-left: 1px solid rgba(255,255,255,0.03);">${cellContent}</td>`;
+        row += `<td class="${colClass}" title="${dateStr} - ${emp.name}${record ? '\nIn: '+(record.check_in||'--:--')+' | Out: '+(record.check_out||'--:--') : ''}" style="text-align: center; padding: 0.3rem 0.1rem; border-left: 1px solid rgba(255,255,255,0.03);">${cellContent}</td>`;
       }
       
       // Summary Cells
@@ -2767,6 +2767,121 @@ document.addEventListener('DOMContentLoaded', () => {
     body.innerHTML = bodyHtml;
   };
 
+
+  
+  window.toggleAttView = function(view) {
+    const vMonthly = document.getElementById('att-view-monthly');
+    const vDaily = document.getElementById('att-view-daily');
+    const btnMonthly = document.getElementById('view-toggle-monthly');
+    const btnDaily = document.getElementById('view-toggle-daily');
+    
+    const monthPickerControls = document.getElementById('attendance-month-picker')?.parentElement;
+    const markBtn = document.querySelector('button[onclick="openAttendanceModal()"]');
+    const legendBar = document.querySelector('.att-legend-item')?.parentElement;
+    
+    if (view === 'monthly') {
+      if(vMonthly) vMonthly.style.display = 'block';
+      if(vDaily) vDaily.style.display = 'none';
+      if(monthPickerControls) monthPickerControls.style.display = 'flex';
+      if(markBtn) markBtn.style.display = 'inline-flex';
+      if(legendBar) legendBar.style.display = 'flex';
+      
+      if(btnMonthly) {
+        btnMonthly.style.background = 'rgba(6, 182, 212, 0.2)';
+        btnMonthly.style.color = '#06b6d4';
+      }
+      if(btnDaily) {
+        btnDaily.style.background = 'transparent';
+        btnDaily.style.color = '#94a3b8';
+      }
+      if(window.renderAttendanceChart) window.renderAttendanceChart();
+    } else {
+      if(vMonthly) vMonthly.style.display = 'none';
+      if(vDaily) vDaily.style.display = 'block';
+      if(monthPickerControls) monthPickerControls.style.display = 'none';
+      if(markBtn) markBtn.style.display = 'none';
+      if(legendBar) legendBar.style.display = 'none';
+      
+      if(btnDaily) {
+        btnDaily.style.background = 'rgba(6, 182, 212, 0.2)';
+        btnDaily.style.color = '#06b6d4';
+      }
+      if(btnMonthly) {
+        btnMonthly.style.background = 'transparent';
+        btnMonthly.style.color = '#94a3b8';
+      }
+      
+      const dPicker = document.getElementById('att-daily-date-picker');
+      if (dPicker && !dPicker.value) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        dPicker.value = `${yyyy}-${mm}-${dd}`;
+      }
+      renderAttDailyView();
+    }
+  };
+
+  window.renderAttDailyView = function() {
+    const dPicker = document.getElementById('att-daily-date-picker');
+    const tbody = document.getElementById('att-daily-tbody');
+    if (!dPicker || !tbody) return;
+    
+    const selectedDate = dPicker.value;
+    const employees = state.employees || [];
+    const attRecords = (state.attendance || []).filter(a => a.date === selectedDate);
+    
+    if (employees.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color:var(--text-muted); padding:2rem;">No employees found.</td></tr>';
+      return;
+    }
+
+    let html = '';
+    employees.filter(e => e.status === 'active').forEach(emp => {
+      const record = attRecords.find(a => a.employee_id === emp.id) || {};
+      const status = record.status || 'No Record';
+      const checkIn = record.check_in || '--:--';
+      const checkOut = record.check_out || '--:--';
+      const ot = record.overtime_hours ? `${record.overtime_hours}h` : '-';
+      
+      let statusBadge = `<span class="badge" style="background: rgba(148,163,184,0.1); color: #94a3b8;">${status}</span>`;
+      if (status === 'present') statusBadge = `<span class="badge" style="background: rgba(16,185,129,0.1); color: #34d399;">Present</span>`;
+      if (status === 'absent') statusBadge = `<span class="badge" style="background: rgba(244,63,94,0.1); color: #fb7185;">Absent</span>`;
+      if (status === 'half-day') statusBadge = `<span class="badge" style="background: rgba(245,158,11,0.1); color: #fbbf24;">Half Day</span>`;
+      
+      let hoursWorked = '-';
+      if (record.check_in && record.check_out) {
+        const t1 = new Date(`1970-01-01T${record.check_in}`);
+        const t2 = new Date(`1970-01-01T${record.check_out}`);
+        let diffMs = t2 - t1;
+        if (diffMs > 0) {
+          const h = Math.floor(diffMs / 3600000);
+          const m = Math.floor((diffMs % 3600000) / 60000);
+          hoursWorked = `${h}h ${m}m`;
+        }
+      }
+
+      html += `
+        <tr>
+          <td style="text-align:left; padding-left:1rem;">
+            <strong>${emp.name}</strong><br>
+            <small style="color:var(--text-muted)">${emp.role}</small>
+          </td>
+          <td style="text-align:center;">${statusBadge}</td>
+          <td style="text-align:center; font-family: monospace; font-size: 0.95rem;">${checkIn}</td>
+          <td style="text-align:center; font-family: monospace; font-size: 0.95rem;">${checkOut}</td>
+          <td style="text-align:center; color:#38bdf8;">${hoursWorked}</td>
+          <td style="text-align:center; color:#fbbf24; font-weight:600;">${ot}</td>
+        </tr>
+      `;
+    });
+    
+    tbody.innerHTML = html;
+  };
+  
+  const dailyPickerEl = document.getElementById('att-daily-date-picker');
+  if (dailyPickerEl) dailyPickerEl.addEventListener('change', window.renderAttDailyView);
 
   const monthPickerEl = document.getElementById('attendance-month-picker');
   if (monthPickerEl) {

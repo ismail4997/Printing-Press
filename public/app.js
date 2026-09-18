@@ -2851,6 +2851,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (status === 'half-day') statusBadge = `<span class="badge" style="background: rgba(245,158,11,0.1); color: #fbbf24;">Half Day</span>`;
       
       let hoursWorked = '-';
+      let autoOtStr = '-';
       if (record.check_in && record.check_out) {
         const t1 = new Date(`1970-01-01T${record.check_in}`);
         const t2 = new Date(`1970-01-01T${record.check_out}`);
@@ -2859,8 +2860,18 @@ document.addEventListener('DOMContentLoaded', () => {
           const h = Math.floor(diffMs / 3600000);
           const m = Math.floor((diffMs % 3600000) / 60000);
           hoursWorked = `${h}h ${m}m`;
+          
+          const eightHoursMs = 8 * 3600000;
+          if (diffMs > eightHoursMs) {
+            const otMs = diffMs - eightHoursMs;
+            const otH = Math.floor(otMs / 3600000);
+            const otM = Math.floor((otMs % 3600000) / 60000);
+            autoOtStr = `+ ${otH > 0 ? otH + 'h ' : ''}${otM > 0 ? otM + 'm' : ''}`.trim();
+          }
         }
       }
+      
+      const finalOt = autoOtStr !== '-' ? autoOtStr : (record.overtime_hours ? `${record.overtime_hours}h` : '-');
 
       html += `
         <tr>
@@ -2872,7 +2883,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td style="text-align:center; font-family: monospace; font-size: 0.95rem;">${checkIn}</td>
           <td style="text-align:center; font-family: monospace; font-size: 0.95rem;">${checkOut}</td>
           <td style="text-align:center; color:#38bdf8;">${hoursWorked}</td>
-          <td style="text-align:center; color:#fbbf24; font-weight:600;">${ot}</td>
+          <td style="text-align:center; color:#fbbf24; font-weight:600;">${finalOt}</td>
         </tr>
       `;
     });

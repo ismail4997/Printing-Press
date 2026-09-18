@@ -2733,10 +2733,21 @@ document.addEventListener('DOMContentLoaded', () => {
         let cellContent = `<span class="att-empty">�</span>`;
         const colClass = isSunday ? 'att-weekend-col' : '';
         
-        if (record) {
-          if (record.overtime_hours) {
-            totalOt += parseFloat(record.overtime_hours) || 0;
-          }
+                  if (record) {
+            let autoOtHrs = 0;
+            if (record.check_in && record.check_out) {
+               const t1 = new Date(`1970-01-01T${record.check_in}`);
+               const t2 = new Date(`1970-01-01T${record.check_out}`);
+               let diffMs = t2 - t1;
+               if (diffMs > 8 * 3600000) {
+                 autoOtHrs = (diffMs - 8 * 3600000) / 3600000;
+               }
+            }
+            if (autoOtHrs > 0) {
+              totalOt += autoOtHrs;
+            } else if (record.overtime_hours) {
+              totalOt += parseFloat(record.overtime_hours) || 0;
+            }
           if (record.status === 'present') {
             pCount++;
             cellContent = `<span class="att-badge att-p">P</span>`;

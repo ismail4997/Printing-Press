@@ -2864,7 +2864,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       html += `
         <tr>
-          <td style="text-align:left; padding-left:1rem;">
+          <td style="text-align:left; padding-left:1.5rem;">
             <strong>${emp.name}</strong><br>
             <small style="color:var(--text-muted)">${emp.role}</small>
           </td>
